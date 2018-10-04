@@ -13,7 +13,8 @@ def shunting_yard(string, operators_set={
 	if "-" in pattern:
 		pattern.remove("-")
 		pattern.insert(0, "-")
-	pattern = "([" + "\\" + "\\".join(pattern) + "]|[0-9]+)"
+	pattern = "\\" + "\\".join(pattern)
+	pattern = "([" + pattern + "]|[^" + pattern + "]+)"
 	input_array = re.findall(pattern, string)
 	
 	ans = []
