@@ -1,3 +1,14 @@
+"""
+	Few facts about Minkowski distance:
+
+	Given the order of the distance p:
+
+	1-Minkowski distance (p = 1) = Manhattan distance
+	2-Minkowski distance (p = 2) = Euclidean distance
+	+inf-Minkowski distance (p -> +inf) = max(inst_a - inst_b)
+	-inf-Minkowski distance (p -> -inf) = min(inst_a - inst_b)
+"""
+
 def minkowskidist(inst_a, inst_b, p=2.0):
 	return (sum((abs(inst_a - inst_b))**p))**(1.0/p)
 
