@@ -1,5 +1,10 @@
 #include <stdlib.h>
 #include <stdio.h>
+#include "sort.h"
+
+#define HEAP_NODE_MASTER(NODE) (((NODE) - 1)/2)
+#define HEAP_NODE_SONL(NODE) (2*(NODE) + 1)
+#define HEAP_NODE_SONR(NODE) (2*(NODE) + 2)
 
 int compare_int(const void *const a, const void *const b) {
 	return (*(int *)a) - (*(int *)b);
@@ -34,7 +39,7 @@ inline static void __swap(
 	}
 }
 
-void _quicksort(
+static void _quicksort(
 	void *const vector, 
 	const long start_index,
 	const long final_index, 
@@ -85,7 +90,7 @@ static inline void __copy(void *const dest, void *const src, const size_t size) 
 	}
 }
 
-void _mergesort(
+static void _mergesort(
 	void *const vector,
 	const long start_index,
 	const long final_index,
@@ -136,10 +141,6 @@ void mergesort(
 	_mergesort(vector, 0, size_memb*(num_memb-1), size_memb, compare_func, buffer);
 	free(buffer);
 }
-
-#define HEAP_NODE_MASTER(NODE) (((NODE) - 1)/2)
-#define HEAP_NODE_SONL(NODE) (2*(NODE) + 1)
-#define HEAP_NODE_SONR(NODE) (2*(NODE) + 2)
 
 static inline void _heapfy(
 	void *const vector,
@@ -222,31 +223,6 @@ void heapsort(
 	}
 }
 
-typedef float test_type;
-#define printf_mask "%f "
-#define vec_size 50000000
-#define min_val (-1000)
-#define max_val (+1000)
-int main(int argc, char *argv[]) {
-	test_type *array = malloc(sizeof(test_type) * vec_size);
-
-	srand(123);
-	for (register size_t i = 0; i < vec_size; i++) {
-		array[i] = (test_type) (1.0 * (max_val - min_val) * rand()/(1.0 * RAND_MAX)) + min_val;
-//		printf(printf_mask, array[i]);
-	}
-	puts("\n");
-
-	quicksort(array, vec_size, sizeof(test_type), compare_float);
-	puts("\nfinished.\n");
-
-/*	
-	for (register size_t i = 0; i < vec_size; ++i) {
-		printf(printf_mask, array[i]);
-	}
-*/	
-	
-	puts("\n");
-	free(array);
-	return 0;
-}
+#undef HEAP_NODE_MASTER
+#undef HEAP_NODE_SONL
+#undef HEAP_NODE_SONR
