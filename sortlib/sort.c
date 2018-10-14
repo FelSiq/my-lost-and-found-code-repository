@@ -5,8 +5,20 @@ int compare_int(const void *const a, const void *const b) {
 	return (*(int *)a) - (*(int *)b);
 }
 
+int compare_long(const void *const a, const void *const b) {
+	return (*(long *)a) - (*(long *)b);
+}
+
+int compare_byte(const void *const a, const void *const b) {
+	return (*(unsigned char *)a) - (*(unsigned char *)b);
+}
+
 int compare_float(const void *const a, const void *const b) {
 	return (*(float *)a) - (*(float *)b);
+}
+
+int compare_double(const void *const a, const void *const b) {
+	return (*(double *)a) - (*(double *)b);
 }
 
 inline static void __swap(
@@ -27,7 +39,7 @@ void _quicksort(
 	const long start_index,
 	const long final_index, 
 	const size_t size_memb,
-	int (*const compare_func)(const void *, const void *)) {
+	int (* const compare_func)(const void *, const void *)) {
 
 	register size_t tail_aux_ind = start_index, 
 		head_aux_ind = final_index;
@@ -35,19 +47,17 @@ void _quicksort(
 	if (start_index >= final_index)
 		return;
 
-	//register const void *const pivot = vector + size_memb * ((final_index + start_index)/(2 * size_memb));
-	register const void *const pivot = vector + start_index;
+	register const void *const pivot = vector + 
+		size_memb * ((final_index + start_index)/(2 * size_memb));
 
 	while (tail_aux_ind <= head_aux_ind) {
 		while(tail_aux_ind < final_index &&
-			compare_func(vector + tail_aux_ind, pivot) < 0) {
+			compare_func(vector + tail_aux_ind, pivot) < 0)
 			tail_aux_ind += size_memb;
-		}
 
 		while(head_aux_ind > start_index &&
-			compare_func(vector + head_aux_ind, pivot) > 0) {
+			compare_func(vector + head_aux_ind, pivot) > 0)
 			head_aux_ind -= size_memb;
-		}
 
 		if (tail_aux_ind <= head_aux_ind) {
 			__swap(vector + head_aux_ind, vector + tail_aux_ind, size_memb);
@@ -69,10 +79,72 @@ void quicksort(
 	_quicksort(vector, 0, size_memb*(num_memb-1), size_memb, compare_func);
 }
 
+static inline void __copy(void *const dest, void *const src, const size_t size) {
+	register size_t i = 0;
+	while (i < size) {
+		*(unsigned char *)(dest + i) = *(unsigned char *)(src + i);
+		i++;
+	}
+}
+
+void _heapsort(
+	void *const vector,
+	const long start_index,
+	const long final_index,
+	const size_t size_memb,
+	int (* const compare_func)(const void *, const void *),
+	unsigned char *buffer) {
+
+	if (start_index >= final_index)
+		return;
+
+	// Split phase
+	register long middle = size_memb * ((final_index + start_index)/(2 * size_memb));
+
+	_heapsort(vector, start_index, middle, size_memb, compare_func, buffer);
+	_heapsort(vector, middle+size_memb, final_index, size_memb, compare_func, buffer);
+
+	// Merge Phase
+	register long i = start_index, j = middle+size_memb, counter = 0;
+
+	while (i <= middle || j <= final_index) {
+		if (i > middle || (j <= final_index && 
+			compare_func(vector + i, vector + j) > 0)) {
+
+			__copy(buffer + counter, vector + j, size_memb);
+			counter += size_memb;
+			j += size_memb;
+
+		} else {
+			__copy(buffer + counter, vector + i, size_memb);
+			counter += size_memb;
+			i += size_memb;
+		}
+	}
+
+	for (i = start_index; i <= final_index; i += size_memb)
+		__copy(vector + i, buffer + i - start_index, size_memb);
+
+}
+
+void heapsort(
+	void *const vector,
+	const size_t num_memb, 
+	const size_t size_memb,
+	int (*const compare_func)(const void *, const void *)) {
+
+	unsigned char *buffer = malloc(sizeof(unsigned char) *
+		(num_memb * size_memb));
+	_heapsort(vector, 0, size_memb*(num_memb-1), size_memb, compare_func, buffer);
+	free(buffer);
+}
+
 
 typedef int test_type;
 #define printf_mask "%d "
 #define vec_size 50000000
+#undef vec_size
+#define vec_size 50
 #define min_val (-1000)
 #define max_val (+1000)
 int main(int argc, char *argv[]) {
@@ -81,18 +153,18 @@ int main(int argc, char *argv[]) {
 	srand(123);
 	for (register size_t i = 0; i < vec_size; i++) {
 		array[i] = (test_type) (1.0 * (max_val - min_val) * rand()/(1.0 * RAND_MAX)) + min_val;
+//		printf(printf_mask, array[i]);
 	}
-	printf("\n");
+	puts("\n");
 
-	quicksort(array, vec_size, sizeof(test_type), compare_int);
-	printf("\nfinished.\n");
+	heapsort(array, vec_size, sizeof(test_type), compare_int);
+	puts("\nfinished.\n");
+
 	
-
-	/*	
 	for (register size_t i = 0; i < vec_size; ++i) {
 		printf(printf_mask, array[i]);
 	}
-	*/
+	
 	
 	puts("\n");
 	free(array);
