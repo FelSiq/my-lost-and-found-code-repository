@@ -3,31 +3,30 @@ import numpy as np
 
 
 def check_missingno(seq):
+    """Find a missing binary sequence in range [0..n]."""
     ans = ""
 
     n = len(seq)
     indexes = np.array([i for i in range(n)])
 
-    j = 1
+    index_cur_bit = 1
     while len(indexes):
-        zero_indexes = []
         one_indexes = []
 
-        for k, i in enumerate(indexes):
-            if seq[i][-j] == "1":
-                one_indexes.append(k)
-            else:
-                zero_indexes.append(k)
+        for index_one_indexes, index_seq in enumerate(indexes):
+            if seq[index_seq][-index_cur_bit] == "1":
+                one_indexes.append(index_one_indexes)
 
         if len(one_indexes) < math.ceil(n/2):
-            indexes = np.delete(indexes, zero_indexes)
+            indexes = indexes[one_indexes]
             ans = "1" + ans
+
         else:
             indexes = np.delete(indexes, one_indexes)
             ans = "0" + ans
 
         n = len(indexes)
-        j += 1
+        index_cur_bit += 1
 
     return ans
 
