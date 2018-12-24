@@ -4,7 +4,7 @@ import numpy as np
 
 def check_missingno(seq):
     """Find a missing binary sequence in range [0..n]."""
-    ans = ""
+    ans = []
 
     n = len(seq)
     indexes = np.array([i for i in range(n)])
@@ -19,16 +19,16 @@ def check_missingno(seq):
 
         if len(one_indexes) < math.ceil(n/2):
             indexes = indexes[one_indexes]
-            ans = "1" + ans
+            ans.append("1")
 
         else:
             indexes = np.delete(indexes, one_indexes)
-            ans = "0" + ans
+            ans.append("0")
 
         n = len(indexes)
         index_cur_bit += 1
 
-    return ans
+    return "".join(ans[::-1])
 
 
 if __name__ == "__main__":
