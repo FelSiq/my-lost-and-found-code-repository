@@ -1,7 +1,79 @@
 import warnings
+import enum
+
+
+class NodeState(enum.IntEnum):
+    NOT_PROCESSED = 1
+    IN_PROGRESS = 2
+    PROCESSED = 3
+
+
+def topological_sort3(graph):
+    """Topological sort using DFS."""
+    def _dfs(node, graph, node_state, ans):
+        if node_state[node] == NodeState.IN_PROGRESS:
+            return False
+
+        if node_state[node] == NodeState.NOT_PROCESSED:
+            node_state[node] = NodeState.IN_PROGRESS
+            for adj_node in graph[node]:
+                if not _dfs(adj_node, graph, node_state, ans):
+                    return False
+
+            node_state[node] = NodeState.PROCESSED
+            ans.insert(0, node)
+
+        return True
+
+    ans = []
+
+    node_state = {node: NodeState.NOT_PROCESSED for node in graph}
+    for node in graph:
+        if node_state[node] == NodeState.NOT_PROCESSED:
+            if not _dfs(node, graph, node_state, ans):
+                warnings.warn("Cycle detected in graph. "
+                              "Can't do topological sort", UserWarning)
+
+                return None
+
+    return ans
+
+
+def topological_sort2(graph):
+    """Topological sort using dependency count V2."""
+    ALREADY_PROCESSED = -1
+
+    ans = []
+    dep_count = {node: 0 for node in graph}
+    for adj_list in graph.values():
+        for adj_node in adj_list:
+            dep_count[adj_node] += 1
+
+    break_flag = True
+    while break_flag:
+        break_flag = False
+        for node in dep_count:
+            if dep_count[node] == 0:
+                dep_count[node] = ALREADY_PROCESSED
+                ans.append(node)
+                for adj_node in graph[node]:
+                    dep_count[adj_node] -= 1
+
+                break_flag = True
+
+    if len(ans) == len(graph):
+        return ans
+
+    warnings.warn("Cycle detected in graph. "
+                  "Can't do topological sort", UserWarning)
+
+    return None
 
 
 def topological_sort(graph):
+    """Topological sort using dependency count V1."""
+    ALREADY_PROCESSED = -1
+
     inc_level = {node: 0 for node in graph}
     topological_list = []
 
@@ -26,7 +98,7 @@ def topological_sort(graph):
         for node in inc_level:
             if inc_level[node] == 0:
                 process_queue.insert(0, node)
-                inc_level[node] = -1
+                inc_level[node] = ALREADY_PROCESSED
 
     if len(topological_list) == len(graph):
         return topological_list
@@ -46,7 +118,7 @@ if __name__ == "__main__":
         "e": [],
     }
 
-    print(topological_sort(graph))
+    print(topological_sort3(graph))
 
     graph = {
         "a": ["b", "c"],
@@ -56,7 +128,7 @@ if __name__ == "__main__":
         "e": ["b"],
     }
 
-    print(topological_sort(graph))
+    print(topological_sort3(graph))
 
     graph = {
         0: [],
@@ -67,4 +139,4 @@ if __name__ == "__main__":
         5: [2, 0],
     }
 
-    print(topological_sort(graph))
+    print(topological_sort3(graph))
