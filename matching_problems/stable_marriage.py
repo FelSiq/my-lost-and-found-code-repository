@@ -43,10 +43,15 @@ def stable_marriage(group_1, group_2):
             rival, rival_pref = match[candidate]
 
             # Note: the "less" the preference, the better (preference = index)
-            if rival is None or (v_1 != rival and rival_pref > v_1_pref):
+            if rival is None:
                 match[candidate] = (v_1, v_1_pref)
-                if rival:
-                    preferences[rival].remove(candidate)
+
+            elif (v_1 != rival and rival_pref > v_1_pref):
+                match[candidate] = (v_1, v_1_pref)
+                preferences[rival].remove(candidate)
+
+            else:
+                preferences[v_1].remove(candidate)
 
     return match
 
