@@ -122,6 +122,18 @@ def chernoff_bound(expected: np.number, deviations: np.number) -> float:
     return np.exp(-k * expected)
 
 
+def murphy_law(expected: np.number) -> float:
+    """Probability of no event occur given the expected number of events to occur.
+
+    The events must be mutually independent.
+    """
+    if expected < 1:
+        raise ValueError("'expected' must be greater or equal than 1. "
+                         "Got '{}'".format(expected))
+
+    return np.exp(-expected)
+
+
 if __name__ == "__main__":
     print("markov_bound:", markov_bound(bound=300, expected=100))
     print("markov_bound_from_mean:", markov_bound_from_mean(deviations=3))
@@ -130,4 +142,5 @@ if __name__ == "__main__":
           chebyshev_bound_for_std(deviations=3, two_sided=True))
     print("chebyshev_bound_for_std (one sided):",
           chebyshev_bound_for_std(deviations=3, two_sided=False))
-    print("chernoff_bound:", chernoff_bound(expected=100, deviations=3))
+    print("chernoff_bound:", chernoff_bound(expected=500, deviations=1.2))
+    print("murphy_lay:", murphy_law(3))
