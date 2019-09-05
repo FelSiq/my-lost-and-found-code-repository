@@ -234,8 +234,29 @@ def fp_to_num(fp: str, verbose: bool = False) -> float:
     return (-1)**int(bin_sign) * mantissa * 2.0**exp
 
 
-for i in [0.0, 1.0, 7.0, 1.375, -13.75, 182.327, -11110.0, 11110.9182]:
-    print("VALUE:", i)
-    fp = num_to_fp(i, precision="single", verbose=True)
-    print(fp)
-    print("Value stored:", fp_to_num(fp, verbose=True), "\n")
+if __name__ == "__main__":
+    np.random.seed(1444)
+
+    for i in np.arange(5000):
+        """
+        print("VALUE:", i)
+        fp = num_to_fp(i, precision="single", verbose=True)
+        print(fp)
+        print("Value stored:", fp_to_num(fp, verbose=True), "\n")
+        """
+        num = np.random.randint(-999999, 999999) + 2.0 * np.random.random() - 1.0
+        assert np.allclose(num, fp_to_num(num_to_fp(num, precision="single")))
+
+    assert np.isnan(fp_to_num("11111111100000000000000000000001"))
+    assert np.isnan(fp_to_num("01111111100000000000000000000001"))
+    assert np.isinf(fp_to_num("01111111100000000000000000000000"))
+    assert np.isinf(fp_to_num("11111111100000000000000000000000"))
+
+    for i in np.arange(5000):
+        num = np.random.randint(-999999, 999999) + 2.0 * np.random.random() - 1.0
+        assert np.allclose(num, fp_to_num(num_to_fp(num, precision="double")))
+
+    assert np.isnan(fp_to_num("1111111111110000000000000000000000100000000000000000000000000000"))
+    assert np.isnan(fp_to_num("0111111111110000000000000000000000100000000000000000000000000000"))
+    assert np.isinf(fp_to_num("0111111111110000000000000000000000000000000000000000000000000000"))
+    assert np.isinf(fp_to_num("1111111111110000000000000000000000000000000000000000000000000000"))
