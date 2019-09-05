@@ -2,18 +2,18 @@
 import typing as t
 import sys
 
+import numpy as np
+
 IEEE_754_BITS_SINGLE = {
     "sign": 1,
     "exponent": 8,
     "mantissa": 23,
-    "significand": 23,
 }
 
 IEEE_754_BITS_DOUBLE = {
     "sign": 1,
     "exponent": 11,
     "mantissa": 52,
-    "significand": 52,
 }
 
 
@@ -90,6 +90,9 @@ def num_to_fp(x: float, precision: str = "single",
     else:
         ieee_format = IEEE_754_BITS_DOUBLE
 
+    if is_equal(x, 0.0):
+        return "0" * sum(ieee_format.values())
+
     def get_exp_val_and_mantissa(bin_x: str) -> t.Tuple[int, str]:
         """Get the exponent value and the mantissa bits.
 
@@ -122,9 +125,9 @@ def num_to_fp(x: float, precision: str = "single",
 
         first_one_ind = bin_mantissa.find("1")
 
-        exp -= first_one_ind
-
-        bin_mantissa = bin_mantissa[(first_one_ind + 1):]
+        if first_one_ind != -1:
+            exp -= first_one_ind
+            bin_mantissa = bin_mantissa[(first_one_ind + 1):]
 
         if len(bin_mantissa) > ieee_format["mantissa"]:
             bin_mantissa_formated = bin_mantissa[:ieee_format["mantissa"]]
@@ -158,7 +161,8 @@ def num_to_fp(x: float, precision: str = "single",
         exponent_bias = 2**(ieee_format["exponent"] - 1) - 1
 
         # Transform the exponent value added to the bias to the binary representation
-        bin_exp = dec_to_bin(exp + exponent_bias, max_bits=ieee_format["exponent"])
+        bin_exp = dec_to_bin(
+            exp + exponent_bias, max_bits=ieee_format["exponent"])
 
         # Fill the most significant bits with zeros, if needed
         bin_exp = "0" * (ieee_format["exponent"] - len(bin_exp)) + bin_exp
@@ -177,14 +181,61 @@ def num_to_fp(x: float, precision: str = "single",
     bin_exp = get_bin_exp(exp)
 
     if verbose:
-        print("SIGN {}:".format(len(bin_sign)), bin_sign)
-        print("EXPONENT {}:".format(len(bin_exp)), bin_exp)
-        print("MANTISSA {}:".format(len(bin_mantissa)), bin_mantissa)
+        print("SIGN ({} bits):".format(len(bin_sign)), bin_sign)
+        print("EXPONENT ({} bits):".format(len(bin_exp)), bin_exp)
+        print("MANTISSA ({} bits):".format(len(bin_mantissa)), bin_mantissa)
 
     # This format order (sign + exp + mantissa) makes FP manipulation easier,
     # for instance in floating point comparisons.
     return bin_sign + bin_exp + bin_mantissa
 
 
-for i in [1.0, 7.0, 1.375, 13.75, 182.327, 11110.0, 11110.9182]:
-    print(i, "-", num_to_fp(i, verbose=True), "\n")
+def fp_to_num(fp: str, verbose: bool = False) -> float:
+    def check_special_vals(bin_exp: str,
+                           bin_mantissa: str) -> t.Optional[float]:
+        """Check for IEEE 754 floating point special values.
+
+        """
+        if bin_exp.find("0") == -1:
+            if bin_mantissa.find("1") == -1:
+                return np.inf
+
+            return np.nan
+
+        if bin_exp.find("1") == -1 and bin_mantissa.find("1") == -1:
+            return 0.0
+
+        return None
+
+    if len(fp) == 32:
+        ieee_format = IEEE_754_BITS_SINGLE
+
+    elif len(fp) == 64:
+        ieee_format = IEEE_754_BITS_DOUBLE
+
+    else:
+        raise ValueError("Length of 'fp' must be either 32 (single precision) "
+                         "or 64 (double precision) (got {}.)".format(len(fp)))
+
+    bin_sign = fp[0]
+    bin_exp = fp[1:(ieee_format['exponent'] + 1)]
+    bin_mantissa = fp[-ieee_format['mantissa']:]
+
+    spc_val = check_special_vals(bin_exp, bin_mantissa)
+
+    if spc_val or (spc_val is not None and is_equal(spc_val, 0.0)):
+        return (-1)**int(bin_sign) * spc_val
+
+    mantissa = int("1" + bin_mantissa, 2) / 2**(ieee_format['mantissa'])
+
+    exp_bias = 2**(ieee_format['exponent'] - 1) - 1
+    exp = int(bin_exp, 2) - exp_bias
+
+    return (-1)**int(bin_sign) * mantissa * 2.0**exp
+
+
+for i in [0.0, 1.0, 7.0, 1.375, -13.75, 182.327, -11110.0, 11110.9182]:
+    print("VALUE:", i)
+    fp = num_to_fp(i, precision="single", verbose=True)
+    print(fp)
+    print("Value stored:", fp_to_num(fp, verbose=True), "\n")
