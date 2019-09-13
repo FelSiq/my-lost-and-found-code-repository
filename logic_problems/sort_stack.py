@@ -28,11 +28,8 @@ if __name__ == "__main__":
         return s == sorted(s, reverse=True)
 
     random.seed(1234)
-    
+
     for i in range(2000):
-        s = [
-          random.randint(-1000, 1000)
-          for _ in range(random.randint(1, 30))
-        ]
-    
+        s = [random.randint(-1000, 1000) for _ in range(random.randint(1, 30))]
+
         assert is_sorted(sort_stack(s))

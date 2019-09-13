@@ -67,7 +67,7 @@ def chebyshev_bound(bound: np.number, variance: np.number) -> float:
         raise ValueError("'variance' must be nonnegative. "
                          "Got '{}'.".format(variance))
 
-    return variance / (bound ** 2.0)
+    return variance / (bound**2.0)
 
 
 def chebyshev_bound_for_std(deviations: np.number,
@@ -94,7 +94,7 @@ def chebyshev_bound_for_std(deviations: np.number,
     if not isinstance(two_sided, bool):
         raise TypeError("'two_sided' must be a boolean value.")
 
-    return 1.0 / (deviations ** 2.0 + int(two_sided))
+    return 1.0 / (deviations**2.0 + int(two_sided))
 
 
 def chernoff_bound(expected: np.number, deviations: np.number) -> float:

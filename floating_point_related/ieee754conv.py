@@ -244,7 +244,8 @@ if __name__ == "__main__":
         print(fp)
         print("Value stored:", fp_to_num(fp, verbose=True), "\n")
         """
-        num = np.random.randint(-999999, 999999) + 2.0 * np.random.random() - 1.0
+        num = np.random.randint(-999999,
+                                999999) + 2.0 * np.random.random() - 1.0
         assert np.allclose(num, fp_to_num(num_to_fp(num, precision="single")))
 
     assert np.isnan(fp_to_num("11111111100000000000000000000001"))
@@ -253,10 +254,23 @@ if __name__ == "__main__":
     assert np.isinf(fp_to_num("11111111100000000000000000000000"))
 
     for i in np.arange(5000):
-        num = np.random.randint(-999999, 999999) + 2.0 * np.random.random() - 1.0
+        num = np.random.randint(-999999,
+                                999999) + 2.0 * np.random.random() - 1.0
         assert np.allclose(num, fp_to_num(num_to_fp(num, precision="double")))
 
-    assert np.isnan(fp_to_num("1111111111110000000000000000000000100000000000000000000000000000"))
-    assert np.isnan(fp_to_num("0111111111110000000000000000000000100000000000000000000000000000"))
-    assert np.isinf(fp_to_num("0111111111110000000000000000000000000000000000000000000000000000"))
-    assert np.isinf(fp_to_num("1111111111110000000000000000000000000000000000000000000000000000"))
+    assert np.isnan(
+        fp_to_num(
+            "1111111111110000000000000000000000100000000000000000000000000000")
+    )
+    assert np.isnan(
+        fp_to_num(
+            "0111111111110000000000000000000000100000000000000000000000000000")
+    )
+    assert np.isinf(
+        fp_to_num(
+            "0111111111110000000000000000000000000000000000000000000000000000")
+    )
+    assert np.isinf(
+        fp_to_num(
+            "1111111111110000000000000000000000000000000000000000000000000000")
+    )

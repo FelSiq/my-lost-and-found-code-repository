@@ -17,7 +17,7 @@ def check_missingno(seq):
             if seq[index_seq][-index_cur_bit] == "1":
                 one_indexes.append(index_one_indexes)
 
-        if len(one_indexes) < math.ceil(n/2):
+        if len(one_indexes) < math.ceil(n / 2):
             indexes = indexes[one_indexes]
             ans.append("1")
 
@@ -42,10 +42,8 @@ if __name__ == "__main__":
     n = int(sys.argv[1])
     m = int(sys.argv[2])
 
-    fill_size = math.ceil(math.log(n+1, 2))
-    seq = [
-        format(i, "b").rjust(fill_size, "0") for i in range(n+1)
-    ]
+    fill_size = math.ceil(math.log(n + 1, 2))
+    seq = [format(i, "b").rjust(fill_size, "0") for i in range(n + 1)]
     seq.pop(m)
     random.shuffle(seq)
 

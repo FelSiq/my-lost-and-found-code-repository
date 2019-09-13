@@ -56,7 +56,7 @@ class BST:
         for p_a in A:
             for i in range(len(p_a)):
                 for p_b in B:
-                    aux = [root] + p_a[:(i+1)] + p_b + p_a[(i+1):]
+                    aux = [root] + p_a[:(i + 1)] + p_b + p_a[(i + 1):]
                     possibilities.append(aux)
 
         return possibilities
@@ -68,8 +68,8 @@ class BST:
         lp = self._get_possibilities(node.son_l)
         lr = self._get_possibilities(node.son_r)
 
-        ans = (self._build_possibilities(lp, lr, node.value)
-               + self._build_possibilities(lr, lp, node.value))
+        ans = (self._build_possibilities(lp, lr, node.value) +
+               self._build_possibilities(lr, lp, node.value))
 
         if not ans:
             return [[node.value]]
@@ -102,7 +102,7 @@ if __name__ == '__main__':
         print("Test case", i, "...")
         tree = BST()
 
-        vals = np.random.randint(-9999, 9999, size=5+i//10)
+        vals = np.random.randint(-9999, 9999, size=5 + i // 10)
 
         for val in vals:
             try:

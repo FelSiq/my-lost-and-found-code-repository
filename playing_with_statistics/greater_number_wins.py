@@ -51,7 +51,6 @@ for _ in range(repeat_num):
 
 print("Win probability with weighted random strategy:", wins / repeat_num)
 
-
 # Winner strategy
 """
 Winning strategy:

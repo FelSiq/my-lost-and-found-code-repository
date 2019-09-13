@@ -98,7 +98,7 @@ if __name__ == '__main__':
     for i in range(10000):
         tree = BST()
 
-        vals = np.random.randint(-9999, 9999, size=30+i//5)
+        vals = np.random.randint(-9999, 9999, size=30 + i // 5)
 
         for val in vals:
             try:

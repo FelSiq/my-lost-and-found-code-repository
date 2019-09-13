@@ -2,9 +2,11 @@
 
 _seed = 0
 
+
 def set_seed(seed: int) -> None:
     global _seed
     _seed = seed
+
 
 def lcrng():
     global _seed

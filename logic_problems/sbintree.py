@@ -34,13 +34,14 @@ def _build_node(array, start, end):
 
     middle = (start + end) // 2
 
-    return Node(value=array[middle],
-                son_r=_build_node(array, start, middle-1),
-                son_l=_build_node(array, middle+1, end))
+    return Node(
+        value=array[middle],
+        son_r=_build_node(array, start, middle - 1),
+        son_l=_build_node(array, middle + 1, end))
 
 
 def build_sbt(array):
-    return SearchBinTree(_build_node(array, 0, len(array)-1))
+    return SearchBinTree(_build_node(array, 0, len(array) - 1))
 
 
 if __name__ == "__main__":
@@ -48,8 +49,7 @@ if __name__ == "__main__":
 
     for i in range(15000):
         t_1 = sorted([
-            random.randint(-9999, 9999)
-            for _ in range(random.randint(1, 155))
+            random.randint(-9999, 9999) for _ in range(random.randint(1, 155))
         ])
 
         bin_t = build_sbt(t_1)

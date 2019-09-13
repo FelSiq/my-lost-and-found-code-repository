@@ -17,7 +17,7 @@ def general_experiment(n: int, name: str):
 
     bdays = set()
     while len(bdays) < n:
-        bdays.update({np.random.randint(1, n+1)})
+        bdays.update({np.random.randint(1, n + 1)})
         counter += 1
 
     print("Gathering all {}".format(name))

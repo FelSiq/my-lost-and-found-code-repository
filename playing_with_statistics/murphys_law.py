@@ -19,16 +19,16 @@ def build_deck():
 
     card_suits = ("Spades", "Clubs", "Hearts", "Diamonds")
 
-    usual_values = np.array([
-        np.repeat(i, len(card_suits))
-        for i in range(2, 10)
-    ]).flatten()
+    usual_values = np.array(
+        [np.repeat(i, len(card_suits)) for i in range(2, 10)]).flatten()
 
-    special_values = np.concatenate(np.array([
-        np.repeat(special_card_values.get(card),
-                  len(card_suits) if card != "Jokers" else 2)
-        for card in special_card_values.keys()
-    ]))
+    special_values = np.concatenate(
+        np.array([
+            np.repeat(
+                special_card_values.get(card),
+                len(card_suits) if card != "Jokers" else 2)
+            for card in special_card_values.keys()
+        ]))
 
     deck = np.concatenate((usual_values, special_values))
 
@@ -61,8 +61,7 @@ for _ in range(experiment_repeats):
 print("Result probabilities:")
 print({
     index: freq[index] / experiment_repeats
-    for index in range(len(deck))
-    if freq[index] > 0
+    for index in range(len(deck)) if freq[index] > 0
 })
 
 plt.bar(range(len(deck)), foot_prints / sum(foot_prints))

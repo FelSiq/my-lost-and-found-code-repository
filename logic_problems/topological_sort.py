@@ -10,6 +10,7 @@ class NodeState(enum.IntEnum):
 
 def topological_sort3(graph):
     """Topological sort using DFS."""
+
     def _dfs(node, graph, node_state, ans):
         if node_state[node] == NodeState.IN_PROGRESS:
             return False
@@ -31,8 +32,9 @@ def topological_sort3(graph):
     for node in graph:
         if node_state[node] == NodeState.NOT_PROCESSED:
             if not _dfs(node, graph, node_state, ans):
-                warnings.warn("Cycle detected in graph. "
-                              "Can't do topological sort", UserWarning)
+                warnings.warn(
+                    "Cycle detected in graph. "
+                    "Can't do topological sort", UserWarning)
 
                 return None
 
