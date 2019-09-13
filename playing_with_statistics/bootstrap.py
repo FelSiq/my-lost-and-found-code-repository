@@ -44,7 +44,8 @@ def bootstrap(population: np.ndarray,
         yield population[cur_inds]
 
 
-def experiment() -> None:
+def experiment(random_state: t.Optional[int] = 16,
+               verbose: bool = True) -> bool:
     """Bootstrap experiment.
 
     To calculate the two-sided confidence interval (1.0 - alpha), for some
@@ -63,15 +64,18 @@ def experiment() -> None:
     This experiment exemplifies this building the two-sided confidence
     interval for the mean of some dataset.
     """
-    random_state = 16
     reps = 1000
     alpha = 0.05
 
-    np.random.seed(random_state)
+    if random_state is not None:
+        np.random.seed(random_state)
 
     pop = np.random.normal(size=100)
 
-    print("Population mean: {}".format(pop.mean()))
+    pop_true_mean = pop.mean()
+
+    if verbose:
+        print("Population mean: {}".format(pop_true_mean))
 
     bootstrapper = bootstrap(pop, n=reps, random_state=random_state)
 
@@ -82,8 +86,15 @@ def experiment() -> None:
     percentiles = 100 * np.array([0.5 * alpha, 1.0 - 0.5 * alpha])
     it_min, it_max = np.percentile(means, percentiles)
 
-    print("Confidence interval (alpha = {}): [{}, {}]".format(alpha, it_min, it_max))
-    print("True mean in confidence internal: {}".format(it_min <= pop.mean() <= it_max))
+    in_conf_interval = it_min <= pop_true_mean <= it_max
+
+    if verbose:
+        print(
+            "Confidence interval (alpha = {}/{}% confidence interval): [{}, {}]"
+            .format(alpha, 100 * (1.0 - alpha), it_min, it_max))
+        print("True mean in confidence internal: {}".format(in_conf_interval))
+
+    return in_conf_interval
 
 
 if __name__ == "__main__":
