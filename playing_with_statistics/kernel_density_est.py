@@ -38,23 +38,27 @@ def kernel_epanechnikov(x: np.ndarray) -> np.ndarray:
     return 0.75 * (1.0 - np.square(x)) * (np.abs(x) < 1.0)
 
 
-def kernel_density_est(unknown_points: np.ndarray,
-                       kernel: t.Callable[[np.ndarray], np.ndarray],
-                       known_points: np.ndarray,
-                       kernel_bandwidth: t.Union[int, float, np.number],
-                       dimension: int = 1) -> np.ndarray:
+def kernel_density_est(
+        unknown_points: np.ndarray,
+        kernel: t.Callable[[np.ndarray], np.ndarray], known_points: np.ndarray,
+        kernel_bandwidth: t.Union[int, float, np.number]) -> np.ndarray:
     """Calculate the density estimation for ``unknown points`` using ``kernel``.
 
     Arguments
     ---------
     """
+    if isinstance(unknown_points, (float, int, np.number)):
+        unknown_points = np.array([unknown_points])
+
+    dimension = 1 if known_points.ndim == 1 else known_points.shape[1]
+
     return np.array([
         np.sum(kernel((x - known_points) / kernel_bandwidth))
         for x in unknown_points
     ]) / (known_points.size * kernel_bandwidth**dimension)
 
 
-def _experiment_01():
+def _experiment_01() -> None:
     """Kernel Density estimation experiment 01."""
     import matplotlib.pyplot as plt
 
@@ -67,7 +71,7 @@ def _experiment_01():
     plt.show()
 
 
-def _experiment_02():
+def _experiment_02() -> None:
     """Kernel Density estimation experiment 02."""
     import matplotlib.pyplot as plt
 
@@ -92,6 +96,52 @@ def _experiment_02():
     plt.show()
 
 
+def _experiment_03() -> None:
+    """Estimate Kernel bandwidth."""
+    import matplotlib.pyplot as plt
+    from cross_validation import loo_cv
+
+    def loss_function(x):
+        """Mean of log-probabilities (0 <= x <= 1)."""
+        return -np.mean(np.log(x))
+
+    random_state = 16
+
+    np.random.seed(random_state)
+
+    candidate_bandwidths = np.linspace(0.01, 1.0, 25)
+    known_points = np.random.normal(size=512)
+
+    logls = np.zeros(candidate_bandwidths.size)
+
+    for X_test, X_train in loo_cv(known_points):
+        for ind_bandwidth in np.arange(candidate_bandwidths.size):
+            kernel_est = kernel_density_est(
+                unknown_points=X_test,
+                known_points=X_train,
+                kernel=kernel_gaussian,
+                kernel_bandwidth=candidate_bandwidths[ind_bandwidth])
+
+            logls[ind_bandwidth] += loss_function(kernel_est)
+
+    bandwidth_opt = candidate_bandwidths[logls.argmin()]
+    print("Optimal bandwidth: {} (loss: {})".format(bandwidth_opt,
+                                                    logls.min()))
+
+    t = np.linspace(-3, 3, 100)
+
+    plt.hist(known_points, 32, density=True)
+    plt.plot(
+        t,
+        kernel_density_est(
+            unknown_points=t,
+            known_points=known_points,
+            kernel=kernel_gaussian,
+            kernel_bandwidth=bandwidth_opt))
+    plt.show()
+
+
 if __name__ == "__main__":
     # _experiment_01()
-    _experiment_02()
+    # _experiment_02()
+    _experiment_03()
