@@ -5,7 +5,7 @@ import numpy as np
 
 
 def bootstrap(population: np.ndarray,
-              n: int = 10,
+              num_samples: int = 10,
               prop: float = 1.0,
               random_state: t.Optional[int] = None) -> np.ndarray:
     """Generator of bootstraps ``population``.
@@ -37,15 +37,45 @@ def bootstrap(population: np.ndarray,
     if random_state is not None:
         np.random.seed(random_state)
 
-    bootstrap_size = int(population.size * prop)
+    if population.ndim == 1:
+        _pop_size = population.size
 
-    for _ in np.arange(n):
-        cur_inds = np.random.randint(population.size, size=bootstrap_size)
+    else:
+        _pop_size = population.shape[0]
+
+    bootstrap_size = int(_pop_size * prop)
+
+    for _ in np.arange(num_samples):
+        cur_inds = np.random.randint(_pop_size, size=bootstrap_size)
         yield population[cur_inds]
 
 
-def experiment(random_state: t.Optional[int] = 16,
-               verbose: bool = True) -> bool:
+def bootstrap_test(pop: np.ndarray,
+                   test_statistic: t.Callable[[np.ndarray], t.
+                                              Union[int, float, np.number]],
+                   random_state: t.Optional[int] = None,
+                   alpha: float = 0.05,
+                   num_samples: int = 100,
+                   bootstrap_sample_size: float = 1.0) -> np.ndarray:
+    """Get a generic confidence interval via bootstrap technique."""
+    if random_state is not None:
+        np.random.seed(random_state)
+
+    t_stat_pseudo_pops = np.zeros(num_samples)
+
+    bootstrapper = bootstrap(
+        population=pop, num_samples=num_samples, prop=bootstrap_sample_size)
+
+    for ind, pseudo_pop in enumerate(bootstrapper):
+        t_stat_pseudo_pops[ind] = test_statistic(pseudo_pop)
+
+    interval = 100 * np.array([0.5 * alpha, 1.0 - 0.5 * alpha])
+
+    return np.percentile(t_stat_pseudo_pops, interval)
+
+
+def _experiment_01(random_state: t.Optional[int] = 16,
+                   verbose: bool = True) -> bool:
     """Bootstrap experiment.
 
     To calculate the two-sided confidence interval (1.0 - alpha), for some
@@ -77,11 +107,11 @@ def experiment(random_state: t.Optional[int] = 16,
     if verbose:
         print("Population mean: {}".format(pop_true_mean))
 
-    bootstrapper = bootstrap(pop, n=reps, random_state=random_state)
+    bootstrapper = bootstrap(pop, num_samples=reps, random_state=random_state)
 
     means = np.zeros(reps)
-    for i, pseudo_pop in enumerate(bootstrapper):
-        means[i] = pseudo_pop.mean()
+    for ind, pseudo_pop in enumerate(bootstrapper):
+        means[ind] = pseudo_pop.mean()
 
     percentiles = 100 * np.array([0.5 * alpha, 1.0 - 0.5 * alpha])
     it_min, it_max = np.percentile(means, percentiles)
@@ -97,5 +127,27 @@ def experiment(random_state: t.Optional[int] = 16,
     return in_conf_interval
 
 
+def _experiment_02():
+    """Bootstrap experiment 02."""
+    test_statistics = [np.mean, np.median]
+    for t_stat in test_statistics:
+        pop = np.random.normal(size=1000)
+        conf_interval = bootstrap_test(pop=pop, test_statistic=t_stat)
+        print(conf_interval, t_stat(pop))
+
+    def corrcoef(pop):
+        return np.corrcoef(pop[:, 0].T, pop[:, 1].T)[0, 1]
+
+    pop_a = np.random.normal(size=1000).reshape(-1, 1)
+    pop_b = np.random.normal(size=1000).reshape(-1, 1)
+    pop = np.hstack((pop_a, pop_b))
+    conf_interval = bootstrap_test(pop=pop, test_statistic=corrcoef)
+    print(conf_interval, corrcoef(pop))
+
+
 if __name__ == "__main__":
-    experiment()
+    print("Experiment 01")
+    _experiment_01()
+
+    print("Experiment 02")
+    _experiment_02()
