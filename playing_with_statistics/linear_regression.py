@@ -57,7 +57,46 @@ class LinRegressor:
         return vals * self.reg_coeff + self.intercept
 
 
-def _test():
+class MultivarLinRegressor:
+    """Simple algorithm to fit multivariate linear regression model."""
+
+    def __init__(self):
+        """Fit multivariate linear regression models."""
+        self.coeffs = None  # type: np.ndarray
+
+    @staticmethod
+    def _augment_x(X: np.ndarray) -> np.ndarray:
+        """Append a column of 1's in ``X``.
+
+        Useful to calculate both multivariate coefficients and intercept
+        together.
+        """
+        if X.ndim == 1:
+            X = X.reshape(-1, 1)
+
+        _num_inst, _ = X.shape
+
+        return np.hstack((X, np.ones((_num_inst, 1))))
+
+    def fit(self, X: np.ndarray, y: np.ndarray) -> "MultivarLinRegressor":
+        """Fit data into model, calculating the corresponding coefficients."""
+        if y.ndim == 1:
+            y = y.reshape(-1, 1)
+
+        X_aug = MultivarLinRegressor._augment_x(X)
+
+        _M = np.matmul(X_aug.T, X_aug)
+        _Y = np.matmul(X_aug.T, y)
+        self.coeffs = np.linalg.solve(_M, _Y)
+
+        return self
+
+    def predict(self, X: np.ndarray) -> np.ndarray:
+        """Use the fitted model to predict unknown values."""
+        return np.matmul(MultivarLinRegressor._augment_x(X), self.coeffs)
+
+
+def _test_univar_lin_reg():
     import matplotlib.pyplot as plt
     random_state = 16
 
@@ -101,4 +140,4 @@ def _test():
 
 
 if __name__ == "__main__":
-    _test()
+    _test_univar_lin_reg()
