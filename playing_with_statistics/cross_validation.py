@@ -51,18 +51,13 @@ def kfold_cv(X: np.ndarray, k: int = 10, shuffle: bool = True
     if shuffle:
         np.random.shuffle(indices)
 
-    i = 0
-    while i < n_samples:
-        add_extra_inst = int(uneven_extra_inds > 0)
+    for _ in np.arange(k):
+        split_index = test_size + int(uneven_extra_inds > 0)
         uneven_extra_inds -= 1
 
-        inds_train_a, inds_test, inds_train_b = np.split(
-            indices, (i, i + test_size + add_extra_inst))
-        inds_train = np.concatenate((inds_train_a, inds_train_b))
+        yield X[indices[:split_index]], X[indices[split_index:]]
 
-        i += test_size + add_extra_inst
-
-        yield X[inds_test], X[inds_train]
+        indices = np.roll(indices, -split_index)
 
 
 def loo_cv(X: np.ndarray, shuffle: bool = True
@@ -116,3 +111,8 @@ def monte_carlo_cv(X: np.ndarray,
         np.random.shuffle(indices)
         inds_test, inds_train = np.split(indices, [test_size])
         yield X[inds_test], X[inds_train]
+
+
+if __name__ == "__main__":
+    for fold in kfold_cv(np.arange(18), k=10, shuffle=False):
+        print(fold)
