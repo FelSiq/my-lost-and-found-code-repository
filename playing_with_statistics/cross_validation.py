@@ -27,21 +27,24 @@ import typing as t
 import numpy as np
 
 
-def kfold_cv(X: np.ndarray, k: int = 10, shuffle: bool = True
-             ) -> t.Iterator[t.Tuple[np.ndarray, np.ndarray]]:
+def kfold_cv(
+        X: np.ndarray,
+        k: int = 10,
+        shuffle: bool = True,
+        random_state: t.Optional[int] = None,
+) -> t.Iterator[t.Tuple[np.ndarray, np.ndarray]]:
     """K-fold Cross Validation."""
     if not isinstance(k, int):
         raise TypeError("'k' must be an integer (got {}.)".format(type(k)))
 
-    if k <= 0:
-        raise ValueError("'k' must be a positive value (got {}.)".format(k))
+    if k <= 1:
+        raise ValueError("'k' must be a greater than 1 (got {}.)".format(k))
 
     n_samples = X.size if X.ndim == 1 else X.shape[0]
 
-    if n_samples < k:
-        raise ValueError("Number of samples (got {}) must be greater of equal "
-                         "than the number of folds (got {}).".format(
-                             n_samples, k))
+    if n_samples < max(2, k):
+        raise ValueError("Insufficient number of instances ({}). "
+                         "Required num_inst >= max(2, k)".format(n_samples))
 
     test_size = int(n_samples / k)
     uneven_extra_inds = n_samples - k * test_size
@@ -49,6 +52,9 @@ def kfold_cv(X: np.ndarray, k: int = 10, shuffle: bool = True
     indices = np.arange(n_samples)
 
     if shuffle:
+        if random_state is not None:
+            np.random.seed(random_state)
+
         np.random.shuffle(indices)
 
     for _ in np.arange(k):
@@ -73,7 +79,7 @@ def loo_cv(X: np.ndarray, shuffle: bool = True
 
 
 def monte_carlo_cv(X: np.ndarray,
-                   test_frac: float = 0.1,
+                   test_frac: float = 0.2,
                    n: int = 10,
                    random_state: t.Optional[int] = None
                    ) -> t.Iterator[t.Tuple[np.ndarray, np.ndarray]]:
@@ -95,6 +101,10 @@ def monte_carlo_cv(X: np.ndarray,
 
     n_samples = X.size if X.ndim == 1 else X.shape[0]
 
+    if n_samples < 2:
+        raise ValueError("Number of samples must be greater than 1 "
+                         "(got {}.)".format(n_samples))
+
     test_size = int(test_frac * n_samples)
 
     if test_size == 0:
@@ -114,5 +124,5 @@ def monte_carlo_cv(X: np.ndarray,
 
 
 if __name__ == "__main__":
-    for fold in kfold_cv(np.arange(18), k=10, shuffle=False):
+    for fold in monte_carlo_cv(np.arange(2), test_frac=0.99, random_state=1):
         print(fold)
