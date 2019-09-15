@@ -149,6 +149,7 @@ def _experiment_03() -> None:
         return -np.mean(np.log(inst))
 
     random_state = 16
+    chosen_kernel = kernel_gaussian
 
     np.random.seed(random_state)
 
@@ -162,7 +163,7 @@ def _experiment_03() -> None:
             kernel_est = kernel_density_est(
                 unknown_points=subset_test,
                 known_points=subset_train,
-                kernel=kernel_gaussian,
+                kernel=chosen_kernel,
                 kernel_bandwidth=candidate_bandwidths[ind_bandwidth])
 
             logls[ind_bandwidth] += loss_function(kernel_est)
@@ -185,14 +186,14 @@ def _experiment_03() -> None:
         kernel_density_est(
             unknown_points=linear_vals,
             known_points=known_points,
-            kernel=kernel_gaussian,
+            kernel=chosen_kernel,
             kernel_bandwidth=bandwidth_opt))
     plt.plot(
         linear_vals,
         kernel_density_est(
             unknown_points=linear_vals,
             known_points=known_points,
-            kernel=kernel_gaussian,
+            kernel=chosen_kernel,
             kernel_bandwidth=bandwidth_random))
     plt.show()
 
