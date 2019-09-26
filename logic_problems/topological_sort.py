@@ -72,7 +72,7 @@ def topological_sort2(graph):
     return None
 
 
-def topological_sort(graph):
+def topological_sort1(graph):
     """Topological sort using dependency count V1."""
     ALREADY_PROCESSED = -1
 
@@ -120,7 +120,8 @@ if __name__ == "__main__":
         "e": [],
     }
 
-    print(topological_sort3(graph))
+    print(topological_sort1(graph))
+    print(topological_sort2(graph))
 
     graph = {
         "a": ["b", "c"],
@@ -130,7 +131,8 @@ if __name__ == "__main__":
         "e": ["b"],
     }
 
-    print(topological_sort3(graph))
+    print(topological_sort1(graph))
+    print(topological_sort2(graph))
 
     graph = {
         0: [],
@@ -141,4 +143,5 @@ if __name__ == "__main__":
         5: [2, 0],
     }
 
-    print(topological_sort3(graph))
+    print(topological_sort1(graph))
+    print(topological_sort2(graph))
