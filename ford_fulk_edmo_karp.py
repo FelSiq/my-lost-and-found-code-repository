@@ -108,7 +108,7 @@ def _remove_antiparallel_edges(graph: np.ndarray,
 
 def _add_supervertex(graph: np.ndarray, id_source: t.Union[int, np.ndarray],
                      id_sink: t.Union[int, np.ndarray], add_source: bool,
-                     add_sink: bool) -> t.Tuple[np.ndarray, int, int]:
+                     add_sink: bool, verbose: bool = False) -> t.Tuple[np.ndarray, int, int]:
     """Add a new source/sink node to replace all sources in ``graph``.
 
     Returns new graph adjacency matrix and the new source/sink node id.
@@ -122,11 +122,17 @@ def _add_supervertex(graph: np.ndarray, id_source: t.Union[int, np.ndarray],
 
     if add_source:
         new_id_source = num_node
-        new_graph[new_id_source, id_source] = np.full(np.inf, id_source.size)
+        new_graph[new_id_source, id_source] = np.full(id_source.size, graph[id_source, :].max())
+
+        if verbose:
+            print("Added supersource (total of {} new edges.)".format(id_source.size))
 
     if add_sink:
         new_id_sink = num_node + add_source
-        new_graph[id_sink, new_id_sink] = np.full(np.inf, id_sink.size)
+        new_graph[id_sink, new_id_sink] = np.full(id_sink.size, graph[:, id_sink].max())
+
+        if verbose:
+            print("Added supersink (total of {} new edges.)".format(id_sink.size))
 
     return new_graph, new_id_source, new_id_sink
 
@@ -147,7 +153,8 @@ def edkarp_maxflow(graph: np.ndarray,
             id_source=id_source,
             id_sink=id_sink,
             add_source=add_supersource,
-            add_sink=add_supersink)
+            add_sink=add_supersink,
+            verbose=verbose)
 
     if check_self_loops:
         graph = _check_self_loops(graph, verbose=verbose)
