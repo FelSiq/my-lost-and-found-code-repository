@@ -46,17 +46,11 @@ def _bfs(graph: np.ndarray, id_root: int, id_target: int
     return None, 0
 
 
-def _check_self_loops(graph: np.ndarray,
-                      inplace: bool = False,
-                      verbose: bool = False) -> np.ndarray:
+def _check_self_loops(graph: np.ndarray, verbose: bool = False) -> np.ndarray:
     """Check if ``graph`` has self loops and remove then if necessary."""
     _removed_loops_count = 0
 
-    if inplace:
-        new_graph = graph
-
-    else:
-        new_graph = graph.copy()
+    new_graph = graph.copy()
 
     if verbose:
         for i in np.arange(new_graph.shape[0]):
@@ -112,22 +106,51 @@ def _remove_antiparallel_edges(graph: np.ndarray,
     return new_graph
 
 
+def _add_supervertex(graph: np.ndarray, id_source: t.Union[int, np.ndarray],
+                     id_sink: t.Union[int, np.ndarray], add_source: bool,
+                     add_sink: bool) -> t.Tuple[np.ndarray, int, int]:
+    """Add a new source/sink node to replace all sources in ``graph``.
+
+    Returns new graph adjacency matrix and the new source/sink node id.
+    """
+    num_node = graph.shape[0]
+    new_graph_dim = num_node + add_source + add_sink
+    new_graph = np.zeros((new_graph_dim, new_graph_dim))
+    new_graph[:num_node, :num_node] = graph
+
+    new_id_source, new_id_sink = id_source, id_sink
+
+    if add_source:
+        new_id_source = num_node
+        new_graph[new_id_source, id_source] = np.full(np.inf, id_source.size)
+
+    if add_sink:
+        new_id_sink = num_node + add_source
+        new_graph[id_sink, new_id_sink] = np.full(np.inf, id_sink.size)
+
+    return new_graph, new_id_source, new_id_sink
+
+
 def edkarp_maxflow(graph: np.ndarray,
-                   id_source: int,
-                   id_sink: int,
+                   id_source: t.Union[int, np.ndarray],
+                   id_sink: t.Union[int, np.ndarray],
                    check_antiparallel_edges: bool = True,
                    check_self_loops: bool = True,
-                   inplace: bool = False,
                    verbose: bool = False) -> t.Union[int, float]:
     """."""
-    if inplace and check_antiparallel_edges:
-        inplace = False
-        warnings.warn(
-            "Can't make changes in-place with 'check_antiparallel_edges' "
-            "activated. Disabling in-place changes.", UserWarning)
+    add_supersource = not isinstance(id_source, int)
+    add_supersink = not isinstance(id_sink, int)
+
+    if add_supersource or add_supersink:
+        graph, id_source, id_sink = _add_supervertex(
+            graph,
+            id_source=id_source,
+            id_sink=id_sink,
+            add_source=add_supersource,
+            add_sink=add_supersink)
 
     if check_self_loops:
-        graph = _check_self_loops(graph, inplace=inplace, verbose=verbose)
+        graph = _check_self_loops(graph, verbose=verbose)
 
     if check_antiparallel_edges:
         graph = _remove_antiparallel_edges(graph, verbose=verbose)
@@ -169,5 +192,14 @@ if __name__ == "__main__":
         [0, 0, 0, 7, 0, 4],
         [0, 0, 0, 0, 0, 0],
     ])
-    MAX_FLOW = edkarp_maxflow(GRAPH, 0, 5, verbose=True)
+    MAX_FLOW = edkarp_maxflow(GRAPH, 0, GRAPH.shape[0] - 1, verbose=True)
+    print("Max flow:", MAX_FLOW)
+
+    GRAPH = np.array([
+        [1, 1e+6, 1e+6, 0],
+        [0, 1, 1, 1e+6],
+        [0, 0, 0, 1e+6],
+        [0, 0, 0, 0],
+    ])
+    MAX_FLOW = edkarp_maxflow(GRAPH, 0, GRAPH.shape[0] - 1, verbose=True)
     print("Max flow:", MAX_FLOW)
