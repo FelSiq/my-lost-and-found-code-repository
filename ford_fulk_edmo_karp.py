@@ -3,7 +3,6 @@
 Finds the maximum network flow in O(V * E**2) time complexity.
 """
 import typing as t
-import warnings
 
 import numpy as np
 
@@ -215,8 +214,9 @@ def edkarp_maxflow(graph: np.ndarray,
     return max_flow
 
 
-if __name__ == "__main__":
-    GRAPH = np.array([
+def _experiment_01():
+    """Experiment 01."""
+    graph = np.array([
         [0, 16, 13, 0, 0, 0],
         [0, 0, 0, 12, 0, 0],
         [0, 4, 0, 0, 14, 0],
@@ -224,19 +224,25 @@ if __name__ == "__main__":
         [0, 0, 0, 7, 0, 4],
         [0, 0, 0, 0, 0, 0],
     ])
-    MAX_FLOW = edkarp_maxflow(GRAPH, 0, GRAPH.shape[0] - 1, verbose=True)
-    print("Max flow:", MAX_FLOW)
+    max_flow = edkarp_maxflow(graph, 0, graph.shape[0] - 1, verbose=True)
+    print("Max flow:", max_flow)
 
-    GRAPH = np.array([
+
+def _experiment_02():
+    """Experiment 02."""
+    graph = np.array([
         [1, 1e+6, 1e+6, 0],
         [0, 1, 1, 1e+6],
         [0, 0, 0, 1e+6],
         [0, 0, 0, 0],
     ])
-    MAX_FLOW = edkarp_maxflow(GRAPH, 0, GRAPH.shape[0] - 1, verbose=True)
-    print("Max flow:", MAX_FLOW)
+    max_flow = edkarp_maxflow(graph, 0, graph.shape[0] - 1, verbose=True)
+    print("Max flow:", max_flow)
 
-    GRAPH = np.array([
+
+def _experiment_03():
+    """Experiment 03."""
+    graph = np.array([
         [0, 0, 0, 0, 0, 1, 0, 0, 0],
         [0, 0, 0, 0, 0, 1, 0, 1, 0],
         [0, 0, 0, 0, 0, 0, 1, 1, 1],
@@ -247,14 +253,42 @@ if __name__ == "__main__":
         [0, 0, 0, 0, 0, 0, 0, 0, 0],
         [0, 0, 0, 0, 0, 0, 0, 0, 0],
     ])
-    MAX_FLOW = edkarp_maxflow(
-        GRAPH, np.array([0, 1, 2, 3, 4]), np.array([5, 6, 7, 8]), verbose=True)
-    print("Max flow:", MAX_FLOW)
+    max_flow = edkarp_maxflow(
+        graph, np.array([0, 1, 2, 3, 4]), np.array([5, 6, 7, 8]), verbose=True)
+    print("Max flow:", max_flow)
 
+
+def _experiment_04():
+    """Experiment 04."""
     np.random.seed(16)
-    GRAPH = np.random.randint(1, 20, size=(500, 500))
-    GRAPH[np.tril_indices(GRAPH.shape[0])] = 0
-    GRAPH[np.triu_indices(GRAPH.shape[0], k=4)] = 0
-    MAX_FLOW = edkarp_maxflow(
-        GRAPH, np.random.randint(0, 20, size=9), GRAPH.shape[0] - 1, verbose=True)
-    print("Max flow:", MAX_FLOW)
+    graph = np.random.randint(1, 20, size=(500, 500))
+    graph[np.tril_indices(graph.shape[0])] = 0
+    graph[np.triu_indices(graph.shape[0], k=4)] = 0
+    max_flow = edkarp_maxflow(
+        graph, np.random.randint(0, 20, size=9), graph.shape[0] - 1, verbose=True)
+    print("Max flow:", max_flow)
+
+
+def _experiment_05():
+    """Experiment 05."""
+    graph = np.array([
+        [0, 0, 0, 0, 0, 0, 1, 0],
+        [0, 0, 0, 0, 0, 1, 1, 0],
+        [0, 0, 0, 0, 1, 0, 1, 1],
+        [0, 0, 0, 0, 0, 1, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0],
+    ])
+    max_flow = edkarp_maxflow(
+        graph, np.array([0, 1, 2, 3]), np.array([4, 5, 6, 7]), verbose=True)
+    print("Max flow:", max_flow)
+
+
+if __name__ == "__main__":
+    _experiment_01()
+    _experiment_02()
+    _experiment_03()
+    _experiment_04()
+    _experiment_05()
