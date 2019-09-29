@@ -24,10 +24,9 @@ def _traceback(graph: np.ndarray, predecessor_vec: np.ndarray, id_root: int,
     return np.array(ans), bottleneck_val
 
 
-def _bfs(graph: np.ndarray, id_root: int,
-        id_target: int) -> t.Tuple[t.Optional[np.ndarray], t.Union[int, float]]:
+def _bfs(graph: np.ndarray, id_root: int, id_target: int
+         ) -> t.Tuple[t.Optional[np.ndarray], t.Union[int, float]]:
     """Breadth-first search from node ``id_root`` to node ``id_target``."""
-    path = []
     queue = [id_root]
 
     predecessor_vec = np.full(graph.shape[0], -1)
@@ -39,16 +38,17 @@ def _bfs(graph: np.ndarray, id_root: int,
         if id_cur_node == id_target:
             return _traceback(graph, predecessor_vec, id_root, id_target)
 
-        else:
-            for id_adj_node, edge_weight in enumerate(graph[id_cur_node]):
-                if edge_weight > 0 and predecessor_vec[id_adj_node] == -1:
-                    predecessor_vec[id_adj_node] = id_cur_node
-                    queue.insert(0, id_adj_node)
+        for id_adj_node, edge_weight in enumerate(graph[id_cur_node]):
+            if edge_weight > 0 and predecessor_vec[id_adj_node] == -1:
+                predecessor_vec[id_adj_node] = id_cur_node
+                queue.insert(0, id_adj_node)
 
     return None, 0
 
 
-def _check_self_loops(graph: np.ndarray, inplace: bool = False, verbose: bool = False) -> np.ndarray:
+def _check_self_loops(graph: np.ndarray,
+                      inplace: bool = False,
+                      verbose: bool = False) -> np.ndarray:
     """Check if ``graph`` has self loops and remove then if necessary."""
     _removed_loops_count = 0
 
@@ -64,7 +64,8 @@ def _check_self_loops(graph: np.ndarray, inplace: bool = False, verbose: bool = 
                 _removed_loops_count += 1
                 new_graph[i, i] -= new_graph[i, i]
 
-        print("Removed {} self-loops in new_graph.".format(_removed_loops_count))
+        print(
+            "Removed {} self-loops in new_graph.".format(_removed_loops_count))
 
     else:
         for i in np.arange(new_graph.shape[0]):
@@ -73,7 +74,8 @@ def _check_self_loops(graph: np.ndarray, inplace: bool = False, verbose: bool = 
     return new_graph
 
 
-def _remove_antiparallel_edges(graph: np.ndarray, verbose: bool = False) -> np.ndarray:
+def _remove_antiparallel_edges(graph: np.ndarray,
+                               verbose: bool = False) -> np.ndarray:
     """Workaround for antiparallel edges (u, v) and (v, u).
 
     The strategy adopted is to create a new node w such as the edge (u, v)
@@ -87,10 +89,12 @@ def _remove_antiparallel_edges(graph: np.ndarray, verbose: bool = False) -> np.n
 
     for node_id_a in np.arange(1, num_node):
         for node_id_b in np.arange(0, node_id_a):
-            if graph[node_id_a, node_id_b] > 0 and graph[node_id_b, node_id_a] > 0:
+            if graph[node_id_a, node_id_b] > 0 and graph[node_id_b,
+                                                         node_id_a] > 0:
                 new_nodes.append((node_id_a, node_id_b))
 
-    new_graph = np.zeros((num_node + len(new_nodes), num_node + len(new_nodes)))
+    new_graph = np.zeros((num_node + len(new_nodes),
+                          num_node + len(new_nodes)))
     new_graph[:num_node, :num_node] = graph
 
     for new_node_shift_val, adj_nodes in enumerate(new_nodes):
@@ -108,11 +112,6 @@ def _remove_antiparallel_edges(graph: np.ndarray, verbose: bool = False) -> np.n
     return new_graph
 
 
-def _build_residual_graph(graph: np.ndarray, verbose: bool = False) -> np.ndarray:
-    """Build a residual flow network from ``graph``."""
-    return graph.copy()
-
-
 def edkarp_maxflow(graph: np.ndarray,
                    id_source: int,
                    id_sink: int,
@@ -123,8 +122,9 @@ def edkarp_maxflow(graph: np.ndarray,
     """."""
     if inplace and check_antiparallel_edges:
         inplace = False
-        warning.warn("Can't make changes in-place with 'check_antiparallel_edges' "
-                     "activated. Disabling in-place changes.", UserWarning)
+        warnings.warn(
+            "Can't make changes in-place with 'check_antiparallel_edges' "
+            "activated. Disabling in-place changes.", UserWarning)
 
     if check_self_loops:
         graph = _check_self_loops(graph, inplace=inplace, verbose=verbose)
@@ -132,9 +132,10 @@ def edkarp_maxflow(graph: np.ndarray,
     if check_antiparallel_edges:
         graph = _remove_antiparallel_edges(graph, verbose=verbose)
 
-    graph_residual = _build_residual_graph(graph, verbose=verbose)
+    graph_residual = graph.copy()
 
-    path, bottleneck_val = _bfs(graph_residual, id_root=id_source, id_target=id_sink)
+    path, bottleneck_val = _bfs(
+        graph_residual, id_root=id_source, id_target=id_sink)
 
     while path is not None:
         for node_id_a, node_id_b in zip(path[:-1], path[1:]):
@@ -144,7 +145,8 @@ def edkarp_maxflow(graph: np.ndarray,
             else:
                 graph_residual[node_id_a, node_id_b] += bottleneck_val
 
-        path, bottleneck_val = _bfs(graph_residual, id_root=id_source, id_target=id_sink)
+        path, bottleneck_val = _bfs(
+            graph_residual, id_root=id_source, id_target=id_sink)
 
     max_flow = np.sum(graph[id_source, :] - graph_residual[id_source, :])
 
@@ -159,8 +161,7 @@ def edkarp_maxflow(graph: np.ndarray,
 
 
 if __name__ == "__main__":
-    """."""
-    graph = np.array([
+    GRAPH = np.array([
         [0, 16, 13, 0, 0, 0],
         [0, 0, 0, 12, 0, 0],
         [0, 4, 0, 0, 14, 0],
@@ -168,5 +169,5 @@ if __name__ == "__main__":
         [0, 0, 0, 7, 0, 4],
         [0, 0, 0, 0, 0, 0],
     ])
-    new_graph = edkarp_maxflow(graph, 0, 5, verbose=True)
-    print("Max flow:", new_graph)
+    MAX_FLOW = edkarp_maxflow(GRAPH, 0, 5, verbose=True)
+    print("Max flow:", MAX_FLOW)
