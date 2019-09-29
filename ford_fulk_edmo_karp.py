@@ -106,9 +106,12 @@ def _remove_antiparallel_edges(graph: np.ndarray,
     return new_graph
 
 
-def _add_supervertex(graph: np.ndarray, id_source: t.Union[int, np.ndarray],
-                     id_sink: t.Union[int, np.ndarray], add_source: bool,
-                     add_sink: bool, verbose: bool = False) -> t.Tuple[np.ndarray, int, int]:
+def _add_supervertex(graph: np.ndarray,
+                     id_source: t.Union[int, np.ndarray],
+                     id_sink: t.Union[int, np.ndarray],
+                     add_source: bool,
+                     add_sink: bool,
+                     verbose: bool = False) -> t.Tuple[np.ndarray, int, int]:
     """Add a new source/sink node to replace all sources in ``graph``.
 
     Returns new graph adjacency matrix and the new source/sink node id.
@@ -122,17 +125,21 @@ def _add_supervertex(graph: np.ndarray, id_source: t.Union[int, np.ndarray],
 
     if add_source:
         new_id_source = num_node
-        new_graph[new_id_source, id_source] = np.full(id_source.size, graph[id_source, :].max())
+        new_graph[new_id_source, id_source] = np.full(
+            id_source.size, graph[id_source, :].max())
 
         if verbose:
-            print("Added supersource (total of {} new edges.)".format(id_source.size))
+            print("Added supersource (total of {} new edges.)".format(
+                id_source.size))
 
     if add_sink:
         new_id_sink = num_node + add_source
-        new_graph[id_sink, new_id_sink] = np.full(id_sink.size, graph[:, id_sink].max())
+        new_graph[id_sink, new_id_sink] = np.full(id_sink.size,
+                                                  graph[:, id_sink].max())
 
         if verbose:
-            print("Added supersink (total of {} new edges.)".format(id_sink.size))
+            print("Added supersink (total of {} new edges.)".format(
+                id_sink.size))
 
     return new_graph, new_id_source, new_id_sink
 
@@ -209,4 +216,19 @@ if __name__ == "__main__":
         [0, 0, 0, 0],
     ])
     MAX_FLOW = edkarp_maxflow(GRAPH, 0, GRAPH.shape[0] - 1, verbose=True)
+    print("Max flow:", MAX_FLOW)
+
+    GRAPH = np.array([
+        [0, 0, 0, 0, 0, 1, 0, 0, 0],
+        [0, 0, 0, 0, 0, 1, 0, 1, 0],
+        [0, 0, 0, 0, 0, 0, 1, 1, 1],
+        [0, 0, 0, 0, 0, 0, 0, 1, 0],
+        [0, 0, 0, 0, 0, 0, 0, 1, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0],
+    ])
+    MAX_FLOW = edkarp_maxflow(
+        GRAPH, np.array([0, 1, 2, 3, 4]), np.array([5, 6, 7, 8]), verbose=True)
     print("Max flow:", MAX_FLOW)
