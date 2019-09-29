@@ -174,7 +174,11 @@ def edkarp_maxflow(graph: np.ndarray,
     path, bottleneck_val = _bfs(
         graph_residual, id_root=id_source, id_target=id_sink)
 
+    path_lens = []
+
     while path is not None:
+        path_lens.append(path.size)
+
         for node_id_a, node_id_b in zip(path[:-1], path[1:]):
             if graph[node_id_a, node_id_b] > 0:
                 graph_residual[node_id_a, node_id_b] -= bottleneck_val
@@ -188,11 +192,25 @@ def edkarp_maxflow(graph: np.ndarray,
     max_flow = np.sum(graph[id_source, :] - graph_residual[id_source, :])
 
     if verbose:
+        import matplotlib.pyplot as plt
         print("Final residual network:")
         print(graph_residual)
 
         print("Flow:")
         print(graph - graph_residual)
+
+        path_lens = np.array(path_lens)
+
+        plt.subplot(1, 2, 1)
+        plt.title("Size of paths found in BFS (in order)")
+        plt.plot(path_lens)
+
+        plt.subplot(1, 2, 2)
+        plt.title("first-order difference")
+        plt.plot(np.diff(path_lens, n=1))
+        plt.hlines(y=0, xmin=0, xmax=path_lens.size-2, linestyle="--", color="orange")
+
+        plt.show()
 
     return max_flow
 
@@ -231,4 +249,12 @@ if __name__ == "__main__":
     ])
     MAX_FLOW = edkarp_maxflow(
         GRAPH, np.array([0, 1, 2, 3, 4]), np.array([5, 6, 7, 8]), verbose=True)
+    print("Max flow:", MAX_FLOW)
+
+    np.random.seed(16)
+    GRAPH = np.random.randint(1, 20, size=(500, 500))
+    GRAPH[np.tril_indices(GRAPH.shape[0])] = 0
+    GRAPH[np.triu_indices(GRAPH.shape[0], k=4)] = 0
+    MAX_FLOW = edkarp_maxflow(
+        GRAPH, np.random.randint(0, 20, size=9), GRAPH.shape[0] - 1, verbose=True)
     print("Max flow:", MAX_FLOW)
