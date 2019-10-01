@@ -65,7 +65,7 @@ def read_input(source_dir: str, file_extension: t.Optional[str] = None
 
     freq_mat = np.zeros((len(filepaths), len(all_words_fixed)))
 
-    for file_id, filepath in enumerate(document_freqs):
+    for file_id, filepath in enumerate(filepaths):
         for word, freq in zip(*document_freqs[filepath]):
             freq_mat[file_id, all_words_fixed.index(word)] += freq
 
@@ -101,10 +101,10 @@ def calc_tf_idf_mat(freq_mat: np.ndarray,
     return tf_idf_mat, idf_vec
 
 
-def cosine_similarity(vec_a: np.ndarray,
-                      vec_b: np.ndarray,
-                      vec_a_norm: t.Optional[float] = None,
-                      vec_b_norm: t.Optional[float] = None) -> float:
+def _cosine_similarity(vec_a: np.ndarray,
+                       vec_b: np.ndarray,
+                       vec_a_norm: t.Optional[float] = None,
+                       vec_b_norm: t.Optional[float] = None) -> float:
     r"""Calculates the cosine similarity between ``vec_a`` and ``vec_b``.
 
     The consine similarity is calculated as follows:
@@ -127,7 +127,8 @@ def query(query_val: str,
           files: np.ndarray,
           words: t.Tuple[str, ...],
           top_k: int = 1,
-          doc_vec_lens: t.Optional[np.ndarray] = None) -> str:
+          doc_vec_lens: t.Optional[np.ndarray] = None,
+          normalize_tf: bool = True) -> str:
     """."""
     if top_k <= 0:
         raise ValueError("'top_k' must be a positive value!")
@@ -152,7 +153,8 @@ def query(query_val: str,
         except ValueError:
             pass
 
-    vector_query /= len(tokens)
+    if normalize_tf:
+        vector_query /= len(tokens)
 
     _vector_query_norm = np.linalg.norm(vector_query, ord=2)
 
@@ -160,7 +162,7 @@ def query(query_val: str,
         doc_vec_lens = np.linalg.norm(tf_idf_mat, ord=2, axis=1)
 
     similarities = np.array([
-        cosine_similarity(
+        _cosine_similarity(
             vector_doc,
             vector_query,
             vec_a_norm=doc_vec_len,
@@ -174,24 +176,25 @@ def query(query_val: str,
     return files[np.argsort(similarities) < top_k]
 
 
-def _test():
+def _run_query():
     import sys
-    if len(sys.argv) < 2:
-        print("usage: python", sys.argv[0], "<source dir>")
+    if len(sys.argv) < 3:
+        print("usage: python", sys.argv[0], "<source dir> <query>")
         exit(1)
 
     files, words, freq_mat = read_input(sys.argv[1])
     tf_idf_mat, idf_vec, doc_vec_lens = calc_tf_idf_mat(freq_mat)
+    print("Query:", sys.argv[2])
     print(
         query(
-            "New new york",
+            sys.argv[2],
             tf_idf_mat=tf_idf_mat,
             idf_vec=idf_vec,
             files=files,
             words=words,
-            top_k=2,
+            top_k=1,
             doc_vec_lens=doc_vec_lens))
 
 
 if __name__ == "__main__":
-    _test()
+    _run_query()
