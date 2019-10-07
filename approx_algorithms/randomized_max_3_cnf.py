@@ -123,8 +123,8 @@ def randomized_3_cnf(
     return avg_sat
 
 
-def _test():
-    """Test the approximation algorithm with some 3-CNF formula."""
+def _test_01():
+    """Test 01 the approximation algorithm with some 3-CNF formula."""
     formula = [
         (1, 2, -3),
         (3, 4, -1),
@@ -145,6 +145,41 @@ def _test():
     print("Average satisfiability: {} (performed {} reps.)".format(
         avg_satis, num_rep))
 
+    print("Theoretical expected satisfiability (see Cormen et al. for proof):",
+          7 / 8 * len(formula))
+
+    if solutions:
+        print("Found {} solutions:".format(len(solutions)))
+        for sol in solutions:
+            print(sol)
+
+
+def _test_02():
+    """Test 02 the approximation algorithm with some 3-CNF formula."""
+    num_rep = 4096
+    random_state = 16
+    num_var = 20
+    num_clauses = 50
+
+    np.random.seed(random_state)
+    formula = np.random.randint(-num_var, num_var + 1, size=(num_clauses, 3))
+    zeros = formula == 0
+    formula[zeros] = np.random.randint(
+        1, num_var + 1, size=np.sum(zeros)) * np.random.choice(
+            [1, -1], size=np.sum(zeros))
+
+    avg_satis, solutions = randomized_3_cnf(
+        formula,
+        repetitions=num_rep,
+        random_state=random_state,
+        return_solutions=True)
+
+    print("Average satisfiability: {} (performed {} reps.)".format(
+        avg_satis, num_rep))
+
+    print("Theoretical expected satisfiability (see Cormen et al. for proof):",
+          7 / 8 * len(formula))
+
     if solutions:
         print("Found {} solutions:".format(len(solutions)))
         for sol in solutions:
@@ -152,4 +187,5 @@ def _test():
 
 
 if __name__ == "__main__":
-    _test()
+    _test_01()
+    _test_02()
