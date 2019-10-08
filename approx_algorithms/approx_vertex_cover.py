@@ -48,7 +48,8 @@ def approx_vertex_cover(
     return vert_cov
 
 
-def _test():
+def _test_01():
+    """Test with a example graph from Cormen et al."""
     graph = {
         'a': ['b'],
         'b': ['a', 'c'],
@@ -66,5 +67,22 @@ def _test():
         ver_cov)
 
 
+def _test_02():
+    """Test with a circular graph."""
+    graph_size = 100
+    graph = {
+        i: [i + 1]
+        for i in range(1, graph_size)
+    }
+    graph[graph_size] = [1]
+
+    ver_cov = approx_vertex_cover(graph=graph)
+
+    print(
+        "(Possibly) suboptimal vertex cover (size: {}):".format(len(ver_cov)),
+        ver_cov)
+
+
 if __name__ == "__main__":
-    _test()
+    # _test_01()
+    _test_02()
