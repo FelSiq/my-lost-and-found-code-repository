@@ -173,12 +173,15 @@ def extend_vertices_capacity(graph: np.ndarray,
     return new_graph
 
 
-def edkarp_maxflow(graph: np.ndarray,
-                   id_source: t.Union[int, np.ndarray],
-                   id_sink: t.Union[int, np.ndarray],
-                   check_antiparallel_edges: bool = True,
-                   check_self_loops: bool = True,
-                   verbose: bool = False) -> t.Union[int, float]:
+def edkarp_maxflow(
+        graph: np.ndarray,
+        id_source: t.Union[int, np.ndarray],
+        id_sink: t.Union[int, np.ndarray],
+        check_antiparallel_edges: bool = True,
+        check_self_loops: bool = True,
+        return_flow_graph: bool = False,
+        verbose: bool = False
+) -> t.Union[t.Union[int, float], t.Tuple[t.Union[int, float], np.ndarray]]:
     """."""
     add_supersource = not isinstance(id_source, int)
     add_supersink = not isinstance(id_sink, int)
@@ -246,6 +249,10 @@ def edkarp_maxflow(graph: np.ndarray,
 
         plt.show()
 
+    if return_flow_graph:
+        flow_graph = graph - graph_residual
+        return max_flow, flow_graph
+
     return max_flow
 
 
@@ -307,97 +314,89 @@ def _experiment_04():
     print("Max flow:", max_flow)
 
 
-def _experiment_06():
-    """Experiment 06."""
+def find_k_edge_disjoint_paths(
+        graph: np.ndarray,
+        k: int,
+        source_id: int,
+        sink_id: int,
+        search_fun: t.Optional[t.Callable[[np.ndarray, int, int], t.
+                                          Optional[np.ndarray]]] = None,
+) -> t.List[np.ndarray]:
+    """Find k edge disjoint paths in the given graph if possible."""
 
-    def _exclusive_traceback(
-            graph: np.ndarray, predecessor_vec: np.ndarray, id_root: int,
-            id_target: int) -> t.Tuple[np.ndarray, t.Union[int, float]]:
-        """Use the predecessor vector to build the found path."""
-        ans = [id_target]
-        id_cur_node = id_target
-        bottleneck_val = np.inf
+    def _decrease_flow(flow_graph: np.ndarray, path: t.Sequence[int]) -> None:
+        """Decrease flow by one unit to every edge in ``path``."""
+        vert_id_prev = path[0]
+        for vert_id_cur in path[1:]:
+            flow_graph[vert_id_prev, vert_id_cur] -= 1
+            vert_id_prev = vert_id_cur
 
-        while id_cur_node != id_root:
-            prev_node = predecessor_vec[id_cur_node]
-            bottleneck_val = min(bottleneck_val, graph[prev_node, id_cur_node])
+    def _translate_path(path: t.Sequence[int]) -> np.ndarray:
+        """Translate the flow network path to the original graph path."""
+        return np.array(path[::2], dtype=int) // 2
 
-            # Remove in-out edges from graph to keep then mutually exclusive
-            graph[prev_node, id_cur_node] -= 1
+    if search_fun is None:
+        search_fun = _bfs
 
-            id_cur_node = prev_node
-            ans.insert(0, id_cur_node)
+    max_flow, flow_graph = edkarp_maxflow(
+        graph, id_root, id_sink, verbose=False, return_flow_graph=True)
 
-        return np.array(ans), bottleneck_val
+    if max_flow < k:
+        raise ValueError(
+            "'There is only {} < k (k = {}) vertex-disjoint paths in this graph."
+            .format(max_flow, k))
 
-    def _all_paths_dfs(
-            graph: np.ndarray, id_root: int, id_target: int
-    ) -> t.Tuple[t.Optional[np.ndarray], t.Union[int, float]]:
-        """."""
-        queue = [id_root]
+    paths = []
+    for i in np.arange(k):
+        path = search_fun(flow_graph, id_root, id_sink)
+        _decrease_flow(flow_graph, path)
+        paths.append(_translate_path(path))
 
-        predecessor_vec = np.full(graph.shape[0], -1)
-        predecessor_vec[id_root] = -2  # Another invalid value
+    return paths
 
-        while queue:
-            id_cur_node = queue.pop()
 
-            if id_cur_node == id_target:
-                return _exclusive_traceback(graph, predecessor_vec, id_root,
-                                            id_target)
+def find_k_vertex_disjoint_paths(
+        graph: np.ndarray,
+        k: int,
+        source_id: int,
+        sink_id: int,
+        search_fun: t.Optional[t.Callable[[np.ndarray, int, int], t.
+                                          Optional[np.ndarray]]] = None,
+) -> t.List[np.ndarray]:
+    """Find k vertex disjoint paths in the given graph if possible."""
 
-            for id_adj_node, edge_weight in enumerate(graph[id_cur_node]):
-                if edge_weight > 0 and predecessor_vec[id_adj_node] == -1:
-                    predecessor_vec[id_adj_node] = id_cur_node
-                    queue.append(id_adj_node)
+    def _decrease_flow(flow_graph: np.ndarray, path: t.Sequence[int]) -> None:
+        """Decrease flow by one unit to every edge in ``path``."""
+        vert_id_prev = path[0]
+        for vert_id_cur in path[1:]:
+            flow_graph[vert_id_prev, vert_id_cur] -= 1
+            vert_id_prev = vert_id_cur
 
-        return None, 0
+    def _translate_path(path: t.Sequence[int]) -> np.ndarray:
+        """Translate the flow network path to the original graph path."""
+        return np.array(path[::2], dtype=int) // 2
 
-    for i in np.arange(1):
-        np.random.seed(16 * (10 + i))
+    if search_fun is None:
+        search_fun = _bfs
 
-        num_vert = np.random.randint(6, 7)
+    graph = extend_vertices_capacity(
+        graph, np.concatenate(([num_vert], np.ones(num_vert - 2), [num_vert])))
 
-        graph = np.random.randint(0, 5, size=(num_vert, num_vert))
-        graph[np.tril_indices(graph.shape[0])] = 0
-        graph[np.triu_indices(graph.shape[0], k=10)] = 0
+    max_flow, flow_graph = edkarp_maxflow(
+        graph, id_root, id_sink, verbose=False, return_flow_graph=True)
 
-        graph = 10 * np.array([
-            [0, 1, 1, 0, 0, 1],
-            [0, 0, 1, 0, 1, 0],
-            [0, 0, 0, 1, 1, 0],
-            [0, 0, 0, 0, 1, 1],
-            [0, 0, 0, 0, 0, 1],
-            [0, 0, 0, 0, 0, 0],
-        ])
-        num_ver = graph.shape[0]
+    if max_flow < k:
+        raise ValueError(
+            "'There is only {} < k (k = {}) vertex-disjoint paths in this graph."
+            .format(max_flow, k))
 
-        print(graph)
-        graph = extend_vertices_capacity(
-            graph,
-            np.concatenate(([99 * num_vert], np.ones(num_vert - 2),
-                            [99 * num_vert])))
-        print(graph)
+    paths = []
+    for i in np.arange(k):
+        path = search_fun(flow_graph, id_root, id_sink)
+        _decrease_flow(flow_graph, path)
+        paths.append(_translate_path(path))
 
-        id_root = 0
-        id_sink = graph.shape[0] - 1
-
-        max_flow = edkarp_maxflow(graph, id_root, id_sink, verbose=False)
-
-        found_paths = 0
-        stop = False
-
-        while not stop:
-            path, _ = _all_paths_dfs(graph, id_root, id_sink)
-            print(path)
-            if path is not None:
-                found_paths += 1
-            else:
-                stop = True
-
-        print("Max flow:", max_flow)
-        print("Paths:", found_paths)
-        assert found_paths == int(max_flow)
+    return paths
 
 
 def _experiment_05():
