@@ -143,6 +143,36 @@ def _add_supervertex(graph: np.ndarray,
     return new_graph, new_id_source, new_id_sink
 
 
+def extend_vertices_capacity(graph: np.ndarray,
+                             vertices_cost: np.ndarray) -> np.ndarray:
+    r"""Extend the given ``graph`` to add vertices capacities.
+
+    The strategy adopted is to transform every vertice $v_{i}$
+    in two new vertices $v_{i, in}$ and $v_{i, out}$ such that
+    $graph[v_{i, in}, v_{i, out}] = \text{vertices\_cost}[i]$.
+
+    All in-edges of $v_{i}$ will be incident to $v_{i, in}$ and
+    all out-edges will be incident to $v_{i, out}$.
+
+    The resultant adjacency matrix has size (2n)**2 = 4n**2,
+    where n is the number of vertices in the given graph.
+    """
+    num_vert = graph.shape[0]
+    new_graph = np.zeros((2 * num_vert, 2 * num_vert))
+
+    side_diag_size = 2 * num_vert
+    connect_related = np.arange(0, side_diag_size,
+                                2), np.arange(0, side_diag_size, 2) + 1
+    new_graph[connect_related] = vertices_cost
+
+    vals = np.arange(0, 2 * num_vert, 2)
+    X, Y = np.meshgrid(vals, vals)
+
+    new_graph[Y + 1, X] = graph
+
+    return new_graph
+
+
 def edkarp_maxflow(graph: np.ndarray,
                    id_source: t.Union[int, np.ndarray],
                    id_sink: t.Union[int, np.ndarray],
@@ -207,7 +237,12 @@ def edkarp_maxflow(graph: np.ndarray,
         plt.subplot(1, 2, 2)
         plt.title("first-order difference")
         plt.plot(np.diff(path_lens, n=1))
-        plt.hlines(y=0, xmin=0, xmax=path_lens.size-2, linestyle="--", color="orange")
+        plt.hlines(
+            y=0,
+            xmin=0,
+            xmax=path_lens.size - 2,
+            linestyle="--",
+            color="orange")
 
         plt.show()
 
@@ -265,8 +300,104 @@ def _experiment_04():
     graph[np.tril_indices(graph.shape[0])] = 0
     graph[np.triu_indices(graph.shape[0], k=4)] = 0
     max_flow = edkarp_maxflow(
-        graph, np.random.randint(0, 20, size=9), graph.shape[0] - 1, verbose=True)
+        graph,
+        np.random.randint(0, 20, size=9),
+        graph.shape[0] - 1,
+        verbose=True)
     print("Max flow:", max_flow)
+
+
+def _experiment_06():
+    """Experiment 06."""
+
+    def _exclusive_traceback(
+            graph: np.ndarray, predecessor_vec: np.ndarray, id_root: int,
+            id_target: int) -> t.Tuple[np.ndarray, t.Union[int, float]]:
+        """Use the predecessor vector to build the found path."""
+        ans = [id_target]
+        id_cur_node = id_target
+        bottleneck_val = np.inf
+
+        while id_cur_node != id_root:
+            prev_node = predecessor_vec[id_cur_node]
+            bottleneck_val = min(bottleneck_val, graph[prev_node, id_cur_node])
+
+            # Remove in-out edges from graph to keep then mutually exclusive
+            graph[prev_node, id_cur_node] -= 1
+
+            id_cur_node = prev_node
+            ans.insert(0, id_cur_node)
+
+        return np.array(ans), bottleneck_val
+
+    def _all_paths_dfs(
+            graph: np.ndarray, id_root: int, id_target: int
+    ) -> t.Tuple[t.Optional[np.ndarray], t.Union[int, float]]:
+        """."""
+        queue = [id_root]
+
+        predecessor_vec = np.full(graph.shape[0], -1)
+        predecessor_vec[id_root] = -2  # Another invalid value
+
+        while queue:
+            id_cur_node = queue.pop()
+
+            if id_cur_node == id_target:
+                return _exclusive_traceback(graph, predecessor_vec, id_root,
+                                            id_target)
+
+            for id_adj_node, edge_weight in enumerate(graph[id_cur_node]):
+                if edge_weight > 0 and predecessor_vec[id_adj_node] == -1:
+                    predecessor_vec[id_adj_node] = id_cur_node
+                    queue.append(id_adj_node)
+
+        return None, 0
+
+    for i in np.arange(1):
+        np.random.seed(16 * (10 + i))
+
+        num_vert = np.random.randint(6, 7)
+
+        graph = np.random.randint(0, 5, size=(num_vert, num_vert))
+        graph[np.tril_indices(graph.shape[0])] = 0
+        graph[np.triu_indices(graph.shape[0], k=10)] = 0
+
+        graph = 10 * np.array([
+            [0, 1, 1, 0, 0, 1],
+            [0, 0, 1, 0, 1, 0],
+            [0, 0, 0, 1, 1, 0],
+            [0, 0, 0, 0, 1, 1],
+            [0, 0, 0, 0, 0, 1],
+            [0, 0, 0, 0, 0, 0],
+        ])
+        num_ver = graph.shape[0]
+
+        print(graph)
+        graph = extend_vertices_capacity(
+            graph,
+            np.concatenate(([99 * num_vert], np.ones(num_vert - 2),
+                            [99 * num_vert])))
+        print(graph)
+
+        id_root = 0
+        id_sink = graph.shape[0] - 1
+
+        max_flow = edkarp_maxflow(graph, id_root, id_sink, verbose=False)
+
+        found_paths = 0
+        stop = False
+
+        while not stop:
+            path, _ = _all_paths_dfs(graph, id_root, id_sink)
+            print(path)
+            if path is not None:
+                found_paths += 1
+            else:
+                stop = True
+
+        print("Max flow:", max_flow)
+        print("Paths:", found_paths)
+        assert found_paths == int(max_flow)
 
 
 def _experiment_05():
@@ -287,8 +418,9 @@ def _experiment_05():
 
 
 if __name__ == "__main__":
-    _experiment_01()
-    _experiment_02()
-    _experiment_03()
-    _experiment_04()
-    _experiment_05()
+    # _experiment_01()
+    # _experiment_02()
+    # _experiment_03()
+    # _experiment_04()
+    # _experiment_05()
+    _experiment_06()
