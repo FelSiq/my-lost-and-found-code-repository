@@ -122,7 +122,7 @@ def _add_supervertex(graph: np.ndarray,
 
     new_id_source, new_id_sink = id_source, id_sink
 
-    if add_source:
+    if add_source and isinstance(id_source, np.ndarray):
         new_id_source = num_node
         new_graph[new_id_source, id_source] = np.full(
             id_source.size, graph[id_source, :].max())
@@ -131,7 +131,7 @@ def _add_supervertex(graph: np.ndarray,
             print("Added supersource (total of {} new edges.)".format(
                 id_source.size))
 
-    if add_sink:
+    if add_sink and isinstance(id_sink, np.ndarray):
         new_id_sink = num_node + add_source
         new_graph[id_sink, new_id_sink] = np.full(id_sink.size,
                                                   graph[:, id_sink].max())
@@ -243,7 +243,7 @@ def edkarp_maxflow(
         plt.hlines(
             y=0,
             xmin=0,
-            xmax=path_lens.size - 2,
+            xmax=len(path_lens) - 2,
             linestyle="--",
             color="orange")
 
@@ -305,7 +305,7 @@ def find_k_edge_disjoint_paths(
         id_source=id_source,
         id_sink=id_sink,
         verbose=False,
-        return_flow_graph=True)
+        return_flow_graph=True)  # type: t.Tuple[int, np.ndarray]
 
     if k < 0:
         k = max_flow
