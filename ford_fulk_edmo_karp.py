@@ -261,6 +261,7 @@ def find_k_edge_disjoint_paths(
         id_source: int,
         id_sink: int,
         k: int = -1,
+        check_edge_weights: bool = True,
 ) -> t.List[np.ndarray]:
     """Find ``k`` edge-disjoint paths in the given graph if possible.
 
@@ -276,11 +277,14 @@ def find_k_edge_disjoint_paths(
     id_sink : :obj:`int`
         Same as above, but for the sink(s).
 
-    k : :obj:`int`
+    k : :obj:`int`, optional
         Number of edge-disjoint paths to found. If positive, note that the
         maximum flow of ``graph`` must be at least ``k``. If given a
         negative value, then this algorithm will find the maximum possible
         edge-disjoint paths.
+
+    check_edge_weights : :obj:`bool`, optional
+        If True, convert all edge positive weights to 1.
 
     Notes
     -----
@@ -299,6 +303,9 @@ def find_k_edge_disjoint_paths(
         for vert_id_cur in path[1:]:
             flow_graph[vert_id_prev, vert_id_cur] -= 1
             vert_id_prev = vert_id_cur
+
+    if check_edge_weights:
+        graph[graph > 0] = 1
 
     max_flow, flow_graph = edkarp_maxflow(
         graph=graph,
@@ -344,7 +351,11 @@ def find_k_vertex_disjoint_paths(
                                     [num_vert])))
 
     paths = find_k_edge_disjoint_paths(
-        graph=graph, k=k, id_source=2 * id_source, id_sink=2 * id_sink + 1)
+        graph=graph,
+        k=k,
+        id_source=2 * id_source,
+        id_sink=2 * id_sink + 1,
+        check_edge_weights=False)
 
     for i in np.arange(len(paths)):
         paths[i] = _translate_path(paths[i])
@@ -463,7 +474,6 @@ def _experiment_07():
         graph = np.random.randint(0, 8, size=(num_vert, num_vert))
         graph[np.tril_indices(graph.shape[0])] = 0
         graph[np.triu_indices(graph.shape[0], k=10)] = 0
-        graph[graph > 0] = 1
 
         paths = find_k_edge_disjoint_paths(
             graph, id_source=0, id_sink=num_vert - 1)
