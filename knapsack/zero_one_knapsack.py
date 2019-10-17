@@ -1,4 +1,8 @@
-"""Solves the 0-1 Knapsack Problem using Dynamic Programming."""
+"""Solves the 0-1 Knapsack Problem using Dynamic Programming.
+
+In this variant, a item can either be fully picked or not be picked.
+You can pick a fraction of some item.
+"""
 import typing as t
 
 import numpy as np
