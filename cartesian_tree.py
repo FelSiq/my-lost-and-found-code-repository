@@ -15,10 +15,14 @@ import numpy as np
 
 
 class _TreeNode:
-    def __init__(self, key: t.Union[float, int], son_l: t.Optional["_TreeNode"] = None, son_r: t.Optional["_TreeNode"] = None):
+    def __init__(self,
+                 key: t.Union[float, int],
+                 son_l: t.Optional["_TreeNode"] = None,
+                 son_r: t.Optional["_TreeNode"] = None):
         self.key = key
         self.son_l = son_l
         self.son_r = son_r
+
 
 class _CartesianBinTree:
     def __init__(self):
@@ -28,8 +32,10 @@ class _CartesianBinTree:
         self._tree_son_l = None  # type: np.ndarray
         self._tree_son_r = None  # type: np.ndarray
         self._tree_key = None  # type: np.ndarray
+        self._node_print_sep = None  # type: np.ndarray
 
-    def _rec_rightmost_path(self, cur_node: int, key: t.Union[int, float]) -> bool:
+    def _rec_rightmost_path(self, cur_node: t.Optional[_TreeNode],
+                            key: t.Union[int, float]) -> bool:
         if cur_node is None:
             return False
 
@@ -66,7 +72,9 @@ class _CartesianBinTree:
 
         return 1 + height
 
-    def _translate_cart_tree_model(self) -> t.Tuple[t.Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray], int]:
+    def translate_cart_tree_model(
+            self
+    ) -> t.Tuple[t.Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray], int]:
         """Translate the underlying tree model to numpy arrays."""
         tree_height = 0
         self._tree_key = np.zeros(self.num_node)
@@ -77,9 +85,11 @@ class _CartesianBinTree:
         self._cur_array_ind = 0
         tree_height = self._rec_travel(self.root, 0.5)
 
-        self._node_print_sep = (self._node_print_sep * 2 ** (1 + tree_height)).astype(int)
+        self._node_print_sep = (self._node_print_sep * 2**
+                                (1 + tree_height)).astype(int)
 
-        return (self._tree_key, self._tree_son_l, self._tree_son_r, self._node_print_sep), tree_height
+        return (self._tree_key, self._tree_son_l, self._tree_son_r,
+                self._node_print_sep), tree_height
 
     def insert(self, key: int) -> None:
         """Insert a new node in the Cartesian Tree."""
@@ -96,6 +106,7 @@ class _CartesianBinTree:
 
 class CartesianTree:
     """Build Cartesian Trees."""
+
     def __init__(self):
         self._tree_son_l = None  # type: np.ndarray
         self._tree_son_r = None  # type: np.ndarray
@@ -126,10 +137,12 @@ class CartesianTree:
             print_array.append(_blank_spaces_sep)
 
             if self._tree_son_l[cur_node_ind] >= 0:
-                queue.insert(0, (self._tree_son_l[cur_node_ind], cur_depth + 1))
+                queue.insert(0,
+                             (self._tree_son_l[cur_node_ind], cur_depth + 1))
 
             if self._tree_son_r[cur_node_ind] >= 0:
-                queue.insert(0, (self._tree_son_r[cur_node_ind], cur_depth + 1))
+                queue.insert(0,
+                             (self._tree_son_r[cur_node_ind], cur_depth + 1))
 
         return "".join(print_array)
 
@@ -157,7 +170,7 @@ class CartesianTree:
         for val in array:
             cart_tree_model.insert(val)
 
-        arrays, self.tree_height = cart_tree_model._translate_cart_tree_model()
+        arrays, self.tree_height = cart_tree_model.translate_cart_tree_model()
 
         self._tree_key, self._tree_son_l, self._tree_son_r, self._node_print_sep = arrays
 
