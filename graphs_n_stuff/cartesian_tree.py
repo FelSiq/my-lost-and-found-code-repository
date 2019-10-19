@@ -1,9 +1,11 @@
 """Builds up a Cartesian Tree from an array.
 
 A Cartesian Tree is a structure that satisfy the (minimum)
-heap property: every children node key is at most the parent
+heap property: every children node key is at least the parent
 node key. This means that the minimal element of any subtree
-of a Cartesian Subtree is always at the root.
+of a Cartesian Subtree is always at the root, and this applies
+recursively in every left and right cartesian subtree of any
+given root.
 
 The second property of a Cartesian Tree is that the in-order
 travel around the tree will hold the original array that
