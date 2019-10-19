@@ -42,7 +42,8 @@ def bfs(graph: np.ndarray,
         ind_source: int,
         ind_target: t.Optional[int] = None,
         return_dists: bool = False,
-        random_seed: t.Optional[int] = None) -> np.ndarray:
+        random_seed: t.Optional[int] = None
+        ) -> t.Union[t.Tuple[np.ndarray, np.ndarray], np.ndarray]:
     """Classical Breadth-First Search (BFS) Algorithm.
 
     Arguments
