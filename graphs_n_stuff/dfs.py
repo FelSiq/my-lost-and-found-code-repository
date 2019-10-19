@@ -64,8 +64,8 @@ def _count_edge(ind_source: int, ind_adj_node: int, timestamps: np.ndarray,
 
     elif timestamps[TStampIndex.FINISHED, ind_adj_node] == -1:
         # Note 1: Adj node is an ancestor of the current node in the DFS tree.
-        # Note 2: 'BACK' edges connects a node to some of its ancestor, except
-        # for its predecessor.
+        # Note 2: 'BACK' edges connects a node to some of its ancestor (including
+        # its predecessor.)
         # Note 3: In CLRS black/white/gray colors, this node is 'gray'
         edge_type = "BACK"
 
