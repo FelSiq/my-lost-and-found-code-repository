@@ -7,15 +7,15 @@ between two given vertices must have the same probability of
 being chosen.
 """
 import typing as t
-import heapq
 
 import numpy as np
 
 
 class DAGPathSampler:
+    """Uniformly sample random paths from two given nodes in a given DAG."""
     def __init__(self):
-        self.node_in_num_path = None  # type: t.Optional[np.ndarray]
-        self.graph = None  # type: t.Optional[np.ndarray]
+        self.node_in_num_path = None  # type: t.Sequence[int]
+        self.graph = None  # type: np.ndarray
         self.num_nodes = -1
         self.ind_source = -1
         self.ind_target = -1
@@ -44,7 +44,7 @@ class DAGPathSampler:
 
         return top_sort
 
-    def _get_num_paths(self, graph: np.ndarray) -> np.ndarray:
+    def _get_num_paths(self, graph: np.ndarray) -> t.Sequence[int]:
         top_sort = self._topological_sort(graph)
 
         num_paths = np.zeros(self.num_nodes)
@@ -61,9 +61,19 @@ class DAGPathSampler:
 
         Arguments
         ---------
+        graph : :obj:`np.ndarray`
+            Adjacency matrix representing graph. Only positive values
+            are considered edges.
+
+        ind_source : :obj:`int`
+            Index of the source node, where every path will start.
+
+        ind_target : :obj:`int`
+            Index of the target node, where every path will ends.
 
         Returns
         -------
+        Self.
         """
         self.num_nodes = graph.shape[0]
 
@@ -76,6 +86,11 @@ class DAGPathSampler:
                              "in range [0, {}].".format(
                                  ind_source, self.num_nodes - 1))
 
+        if not 0 <= ind_target < self.num_nodes:
+            raise ValueError("Invalid target node (index {}.) Must be "
+                             "in range [0, {}].".format(
+                                 ind_target, self.num_nodes - 1))
+
         self.graph = graph > 0
         self.ind_source = ind_source
         self.ind_target = ind_target
@@ -85,8 +100,25 @@ class DAGPathSampler:
         return self
 
     def sample(self, num_paths: int = 1, random_seed: t.Optional[int] = None
-               ) -> t.Union[t.Tuple[int, ...], t.Sequence[t.Tuple[int, ...]]]:
+               ) -> t.Union[t.Tuple[int, ...], t.List[t.Tuple[int, ...]]]:
         """Sample uniformly a path from the fitted DAG.
+
+        Arguments
+        ---------
+        num_paths : :obj:`int`, optional
+            Number of paths to sample. The default value is a single path.
+
+        random_seed : :obj:`int`, optional
+            If givne, set the numpy random seed before sampling the first
+            path.
+
+        Returns
+        -------
+        Either a :obj`list` or a single :obj:`tuple` of :obj:`int`
+            List of all sampled paths. Each path is a tuple of integers,
+            and every integer is the index of some node of the given graph.
+            If ``num_paths`` = 1, then this method will return only the
+            sampled path.
 
         Notes
         -----
@@ -117,7 +149,6 @@ class DAGPathSampler:
 
 
 def _test_01():
-    """."""
     import matplotlib.pyplot as plt
 
     graph = np.array([
@@ -160,7 +191,7 @@ def _test_02():
     graph = np.random.randint(0, 5, size=(10, 10))
     graph = np.tril(np.triu(graph, 1), 5)
     sampler = DAGPathSampler().calculate_probs(
-        graph=graph, ind_source=0, ind_target=graph.shape[0] - 1)
+        graph=graph, ind_source=0, ind_target=len(graph) - 1)
 
     num_paths = 20000
     paths = sampler.sample(num_paths=num_paths, random_seed=16)
