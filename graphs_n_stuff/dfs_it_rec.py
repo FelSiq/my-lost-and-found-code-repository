@@ -23,9 +23,9 @@ def _dfs_it(graph: np.ndarray, ind_cur_node: int, predecessor: np.ndarray, times
     while stack:
         ind_cur_node, ind_predecessor = stack.pop()
 
-        # Unlike BFS, we need to re-check if the current node is not
-        # still visited, because we don't know what happened after this
-        # node was stacked by a adjacent note (ancestor candidate.)
+        # Unlike BFS, we need to re-check if the current node is still
+        # not visited, as we don't know what happened after it
+        # was stacked by some adjacent node (ancestor candidate.)
         if timestamps[0, ind_cur_node] != -1:
             continue
 
@@ -46,9 +46,9 @@ def _dfs_it(graph: np.ndarray, ind_cur_node: int, predecessor: np.ndarray, times
             ind_adj_node = num_node - rev_ind_adj_node
 
             if weight > 0 and timestamps[0, ind_adj_node] == -1:
-                # Unlike BFS, we don't set the predecessor here, because we don't
-                # know yet if the current node will be actually the predecessor of
-                # this adjacent node.
+                # Unlike BFS, we don't set the predecessor here, as we don't
+                # know yet if the current node will be actually the predecessor
+                # of this adjacent node.
                 stack.append((ind_adj_node, ind_cur_node))
 
 
