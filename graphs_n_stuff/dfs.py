@@ -42,36 +42,61 @@ def _is_descendant(ind_descendant: int, ind_ancestor: int,
 
 
 def _count_edge(ind_source: int, ind_adj_node: int, timestamps: np.ndarray,
-                edge_type_counts: t.Dict[str, int]) -> None:
+                edge_type_counts: t.Dict[str, int],
+                edge_class: t.Dict[t.Tuple[int, int], str],
+                directed: bool) -> None:
     """Count the edge based on its classification."""
+    edge = (ind_source, ind_adj_node)
+    edge_type = None
+
+    if edge in edge_class:
+        # Edge already classified. As in CLRS, we only consider the first occurence.
+        # This kind of ambiguity can arise in undirected graphs, where there is no
+        # distinction between 'back', 'forward' and 'cross' edges. A undirected graph,
+        # if only the first edge classification is considered, only has 'tree' and
+        # 'back' edges.
+        return
+
     if timestamps[TStampIndex.DISCOVERY, ind_adj_node] == -1:
-        # 'TREE' edges are the adges connecting directly a node and its predecessor
-        edge_type_counts["TREE"] += 1
+        # Note 1: 'TREE' edges are the adges connecting directly a node and its predecessor
+        # Note 2: In CLRS black/white/gray colors, this node is 'white'.
+        edge_type = "TREE"
 
     elif timestamps[TStampIndex.FINISHED, ind_adj_node] == -1:
-        # Adj node is an ancestor of the current node in the DFS tree
-        # 'BACK' edges connects a node to some of its ancestor, except
-        # for its predecessor
-        edge_type_counts["BACK"] += 1
+        # Note 1: Adj node is an ancestor of the current node in the DFS tree.
+        # Note 2: 'BACK' edges connects a node to some of its ancestor, except
+        # for its predecessor.
+        # Note 3: In CLRS black/white/gray colors, this node is 'gray'
+        edge_type = "BACK"
 
-    elif timestamps[TStampIndex.DISCOVERY, ind_adj_node] > timestamps[
-            TStampIndex.DISCOVERY, ind_source]:
-        # Adj node is a descendant of the current node in the DFS tree
-        # 'FORWARD' edges connects a node to some of its descendants in
+    elif (timestamps[TStampIndex.DISCOVERY, ind_adj_node] >
+          timestamps[TStampIndex.DISCOVERY, ind_source]):
+        # Note 1: Adj node is a descendant of the current node in the DFS tree.
+        # Note 2: 'FORWARD' edges connects a node to some of its descendants in
         # the DFS tree, except for its directly descendants connected
-        # by a 'TREE' edge
-        edge_type_counts["FORWARD"] += 1
+        # by a 'TREE' edge.
+        # Note 3: In CLRS black/white/gray colors, this node is 'black'
+        edge_type = "FORWARD"
 
     else:
-        # Cross edges connects nodes from different subtrees (i.e., neither
+        # Note 1: 'CROSS' edges connects nodes from different subtrees (i.e., neither
         # are descendant nor ancestor of another.)
-        edge_type_counts["CROSS"] += 1
+        # Note 2: In CLRS black/white/gray colors, this node is 'black'
+        edge_type = "CROSS"
+
+    edge_type_counts[edge_type] += 1
+    edge_class[edge] = edge_type
+
+    if not directed:
+        antiparallel_edge = edge[::-1]
+        edge_class[antiparallel_edge] = edge_type
 
 
 def _dfs(graph: np.ndarray, ind_source: int, ind_target: t.Optional[int],
          predecessor_vec: t.List[int], timestamps: np.ndarray,
-         edge_type_counts: t.Dict[str, int],
-         parenthesis: t.List[str]) -> t.Optional[t.List[int]]:
+         edge_type_counts: t.Dict[str, int], parenthesis: t.List[str],
+         edge_class: t.Dict[t.Tuple[int, int], str],
+         directed: bool) -> t.Optional[t.List[int]]:
     """Recursive procedure of DFS.
 
     Typically, if just the path or the predecessor is useful for
@@ -100,7 +125,9 @@ def _dfs(graph: np.ndarray, ind_source: int, ind_target: t.Optional[int],
                 edge_type_counts=edge_type_counts,
                 timestamps=timestamps,
                 ind_source=ind_source,
-                ind_adj_node=ind_adj_node)
+                ind_adj_node=ind_adj_node,
+                edge_class=edge_class,
+                directed=directed)
 
             if predecessor_vec[ind_adj_node] == -1:
                 predecessor_vec[ind_adj_node] = ind_source
@@ -112,7 +139,9 @@ def _dfs(graph: np.ndarray, ind_source: int, ind_target: t.Optional[int],
                     predecessor_vec=predecessor_vec,
                     timestamps=timestamps,
                     edge_type_counts=edge_type_counts,
-                    parenthesis=parenthesis)
+                    parenthesis=parenthesis,
+                    edge_class=edge_class,
+                    directed=directed)
 
                 if path is not None:
                     break
@@ -124,14 +153,17 @@ def _dfs(graph: np.ndarray, ind_source: int, ind_target: t.Optional[int],
     return path
 
 
-def dfs(graph: np.ndarray,
+def dfs(
+        graph: np.ndarray,
         ind_source: int,
+        directed: bool = True,
         ind_target: t.Optional[int] = None,
         return_parenthesis: bool = False,
         return_timestamps: bool = False,
         return_edge_counts: bool = False,
-        random_seed: t.Optional[int] = None
-        ) -> t.Union[t.Tuple[np.ndarray, np.ndarray], np.ndarray]:
+        return_edge_class: bool = False,
+        random_seed: t.Optional[int] = None,
+) -> t.Union[t.Tuple[np.ndarray, np.ndarray], np.ndarray]:
     """Classical recursive Depth-First Search (DFS) algorithm."""
     num_nodes = graph.shape[0]
 
@@ -147,6 +179,10 @@ def dfs(graph: np.ndarray,
         raise ValueError("'ind_target' must be None or be in [0, num_nodes) "
                          "(got {}.)".format(ind_target))
 
+    if not directed and np.any(graph != graph.T):
+        raise ValueError("'graph' is undirected, but adjacency matrix is not "
+                         "symmetric.")
+
     if random_seed is not None:
         np.random.seed(random_seed)
 
@@ -159,6 +195,7 @@ def dfs(graph: np.ndarray,
         type_: 0
         for type_ in ["TREE", "BACK", "FORWARD", "CROSS"]
     }
+    edge_class = {}  # type: t.Dict[t.Tuple[int, int], str]
     parenthesis = []  # type: t.List[str]
 
     _single_it = ind_target is not None
@@ -177,7 +214,9 @@ def dfs(graph: np.ndarray,
             predecessor_vec=predecessor_vec,
             timestamps=timestamps,
             edge_type_counts=edge_type_counts,
-            parenthesis=parenthesis)
+            parenthesis=parenthesis,
+            edge_class=edge_class,
+            directed=directed)
 
         _discover_all_criteria = ind_target is None and -1 in predecessor_vec
 
@@ -202,6 +241,9 @@ def dfs(graph: np.ndarray,
     if return_edge_counts:
         ret.append(edge_type_counts)
 
+    if return_edge_class:
+        ret.append(edge_class)
+
     return tuple(ret)
 
 
@@ -222,10 +264,11 @@ def _test():
         graph=graph,
         ind_source=0,
         ind_target=None,
+        directed=True,
         return_timestamps=True,
         return_edge_counts=True,
         return_parenthesis=True,
-        random_seed=None)
+        random_seed=16)
 
     print("DFS forest predecessor vector:", pred_vec)
     print("Parenthesis:", parenthesis)
