@@ -58,23 +58,26 @@ def _count_edge(ind_source: int, ind_adj_node: int, timestamps: np.ndarray,
         return
 
     if timestamps[TStampIndex.DISCOVERY, ind_adj_node] == -1:
-        # Note 1: 'TREE' edges are the adges connecting directly a node and its predecessor
+        # Note 1: 'TREE' edges are the adges connecting directly some predecessor
+        # node and its corresponding incident node in the DFS tree
         # Note 2: In CLRS black/white/gray colors, this node is 'white'.
         edge_type = "TREE"
 
     elif timestamps[TStampIndex.FINISHED, ind_adj_node] == -1:
-        # Note 1: Adj node is an ancestor of the current node in the DFS tree.
-        # Note 2: 'BACK' edges connects a node to some of its ancestor (including
-        # its predecessor.)
+        # Note 1: 'BACK' edges connects a node to some of its ancestor (including
+        # possibly its predecessor.)
+        # Note 2: In this case, the adj node is an ancestor of the current node
+        # in the DFS tree.
         # Note 3: In CLRS black/white/gray colors, this node is 'gray'
         edge_type = "BACK"
 
     elif (timestamps[TStampIndex.DISCOVERY, ind_adj_node] >
           timestamps[TStampIndex.DISCOVERY, ind_source]):
-        # Note 1: Adj node is a descendant of the current node in the DFS tree.
-        # Note 2: 'FORWARD' edges connects a node to some of its descendants in
+        # Note 1: 'FORWARD' edges connects a node to some of its descendants in
         # the DFS tree, except for its directly descendants connected
         # by a 'TREE' edge.
+        # Note 2: In this case, the adj node is a descendant of the current node
+        # in the DFS tree.
         # Note 3: In CLRS black/white/gray colors, this node is 'black'
         edge_type = "FORWARD"
 
