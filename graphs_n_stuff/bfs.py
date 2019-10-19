@@ -25,14 +25,18 @@ def _bfs(graph: np.ndarray, ind_source: int, ind_target: t.Optional[int],
 
     while queue:
         cur_node_ind = queue.pop()
+
         if ind_target is not None and cur_node_ind == ind_target:
             return _traceback(ind_source, ind_target, predecessor_vec)
 
         for adj_node_ind, weight in enumerate(graph[cur_node_ind, :]):
             if weight > 0 and predecessor_vec[adj_node_ind] == -1:
+                # Unlike the DFS, we can set the predecessor right here
                 predecessor_vec[adj_node_ind] = cur_node_ind
+
                 dist_from_source[
                     adj_node_ind] = 1 + dist_from_source[cur_node_ind]
+
                 queue.insert(0, adj_node_ind)
 
     return None
