@@ -15,13 +15,12 @@ with static edges (i.e., edges that don't change over time) is
 faster using the (classical repeated) Depth First Search (DFS)
 algorithm.
 """
-import typing as t
-
 import numpy as np
 
 
 class _TreeNode:
-    """."""
+    """Node representing a vertex of the graph."""
+
     def __init__(self, key: int):
         self.key = key
         self.parent = self
@@ -51,6 +50,7 @@ class GraphDisjointSets:
     1. Union by Rank
     2. Path compression
     """
+
     def __init__(self):
         self._nodes = []  # type: t.List[_TreeNode]
 
@@ -58,31 +58,35 @@ class GraphDisjointSets:
         _fill_val = max(3, len(str(len(self._nodes))))
         _sep = "+-{0}-+-{0}-+".format(_fill_val * "-")
 
-        str_ = [_sep, "| {:<{fill}} | {:<{fill}} |".format("ID", "Set", fill=_fill_val), _sep]
+        str_ = [
+            _sep, "| {:<{fill}} | {:<{fill}} |".format(
+                "ID", "Set", fill=_fill_val), _sep
+        ]
 
         for node in self._nodes:
-            str_.append("| {:<{fill}} | {:<{fill}} |".format(node.key, self._find_set(node).key, fill=_fill_val))
+            str_.append("| {:<{fill}} | {:<{fill}} |".format(
+                node.key, self._find_set(node).key, fill=_fill_val))
 
         str_.append(_sep)
-            
+
         return "\n".join(str_)
 
     def fit(self, graph: np.ndarray) -> "GraphDisjointSets":
         """."""
-        self.num_nodes = graph.shape[0]
-
-        if graph.shape[1] != self.num_nodes:
+        if graph.shape[1] != graph.shape[0]:
             raise ValueError("Graph adjacency matrix shape must be "
                              "square (got {}.)".format(graph.shape))
 
         self._nodes = []
+        num_nodes = graph.shape[0]
 
-        for index in np.arange(self.num_nodes):
+        for index in np.arange(num_nodes):
             self.make_set(index)
 
-        for ind_cur_node in np.arange(self.num_nodes):
+        for ind_cur_node in np.arange(num_nodes):
             for ind_adj_node, weight in enumerate(graph[ind_cur_node, :]):
-                if weight > 0 and not self.same_component(ind_cur_node, ind_adj_node):
+                if weight > 0 and not self.same_component(
+                        ind_cur_node, ind_adj_node):
                     self.union(ind_cur_node, ind_adj_node)
 
         return self
@@ -110,7 +114,8 @@ class GraphDisjointSets:
         """
         return self._find_set(self._nodes[index]).key
 
-    def _link(self, node_a: _TreeNode, node_b: _TreeNode) -> None:
+    @staticmethod
+    def _link(node_a: _TreeNode, node_b: _TreeNode) -> None:
         if node_a.rank > node_b.rank:
             node_b.parent = node_a
 
@@ -135,7 +140,6 @@ class GraphDisjointSets:
 
 
 def _test() -> None:
-    # np.random.seed(16)
     graph = np.array([
         [0, 0, 0, 0, 0, 0, 1],
         [0, 0, 0, 0, 0, 0, 0],
