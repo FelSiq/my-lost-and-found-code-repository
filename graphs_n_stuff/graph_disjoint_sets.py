@@ -72,7 +72,7 @@ class GraphDisjointSets:
         return "\n".join(str_)
 
     def fit(self, graph: np.ndarray) -> "GraphDisjointSets":
-        """."""
+        """Build a disjoint-set forest from a graph adjacency matrix."""
         if graph.shape[1] != graph.shape[0]:
             raise ValueError("Graph adjacency matrix shape must be "
                              "square (got {}.)".format(graph.shape))
