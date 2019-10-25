@@ -31,15 +31,17 @@ def _traceback(predecessor: np.ndarray, graph: np.ndarray) -> np.ndarray:
 
     for ind_node, ind_pred in enumerate(predecessor):
         if ind_pred >= 0:
-            mst[ind_node, ind_pred] = mst[ind_pred, ind_node] = graph[ind_pred, ind_node]
+            mst[ind_node, ind_pred] = mst[ind_pred, ind_node] = graph[ind_pred,
+                                                                      ind_node]
 
     return mst
 
 
-def mst_prim(graph: np.ndarray,
-             ind_root: t.Optional[int] = None,
-             return_total_weight: bool = False,
-             random_state: t.Optional[int] = None,
+def mst_prim(
+        graph: np.ndarray,
+        ind_root: t.Optional[int] = None,
+        return_total_weight: bool = False,
+        random_state: t.Optional[int] = None,
 ) -> t.Union[np.ndarray, t.Tuple[np.ndarray, bool]]:
     """Find the Minimum Spanning Tree (MST) using Prim algorithm."""
     num_nodes = graph.shape[0]
@@ -53,13 +55,12 @@ def mst_prim(graph: np.ndarray,
             np.random.seed(random_state)
 
         ind_root = np.random.randint(num_nodes)
-        
+
     min_pqueue = [(0, ind_root, -2)]
     total_weight = 0
 
     predecessor = np.full(num_nodes, -1, dtype=int)
 
-    i = 0
     while min_pqueue:
         cur_weight, ind_cur_node, ind_predecessor = heapq.heappop(min_pqueue)
 
@@ -71,7 +72,8 @@ def mst_prim(graph: np.ndarray,
 
         for ind_adj_node, weight in enumerate(graph[ind_cur_node, :]):
             if weight > 0 and predecessor[ind_adj_node] == -1:
-                heapq.heappush(min_pqueue, (weight, ind_adj_node, ind_cur_node))
+                heapq.heappush(min_pqueue,
+                               (weight, ind_adj_node, ind_cur_node))
 
     mst = _traceback(predecessor, graph)
 
