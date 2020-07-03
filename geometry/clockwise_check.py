@@ -14,7 +14,7 @@ def is_clockwise(p1: np.ndarray, p2: np.ndarray) -> bool:
 
 def is_clockwise_seg(p0: np.ndarray, p1: np.ndarray, p2: np.ndarray) -> bool:
     """Check if the segment p0->p1 is clockwise in respect to segment p0->p2."""
-    return is_clockwise(p1 - p0, p2 - p0)
+    return is_clockwise(p2 - p0, p1 - p0)
 
 
 def is_coclockwise(p1: np.ndarray, p2: np.ndarray) -> bool:
@@ -31,7 +31,7 @@ def is_coclockwise(p1: np.ndarray, p2: np.ndarray) -> bool:
 
 def is_coclockwise_seg(p0: np.ndarray, p1: np.ndarray, p2: np.ndarray) -> bool:
     """Check if the segment p0->p1 is counter-clockwise in respect to p0->p2."""
-    return is_coclockwise(p1 - p0, p2 - p0)
+    return is_coclockwise(p2 - p0, p1 - p0)
 
 
 def is_colinear(p1: np.ndarray, p2: np.ndarray) -> bool:
@@ -43,7 +43,7 @@ def is_colinear(p1: np.ndarray, p2: np.ndarray) -> bool:
 
 
 def is_colinear_seg(p0: np.ndarray, p1: np.ndarray, p2: np.ndarray) -> bool:
-    """Check if p1 and p2 are colinear.
+    """Check if p1->p2->p3 are colinear.
 
     The pair of points must be two-dimensional.
     """
