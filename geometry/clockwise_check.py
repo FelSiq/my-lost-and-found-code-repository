@@ -1,12 +1,7 @@
 """Check whether p1 is clockwise from p2 in respect to the origin."""
 import numpy as np
 
-
-def _det(p1: np.ndarray, p2: np.ndarray) -> bool:
-    """Determinant of pair of points."""
-    x1, y1 = p1
-    x2, y2 = p2
-    return x1 * y2 - y1 * x2
+import _utils
 
 
 def is_clockwise(p1: np.ndarray, p2: np.ndarray) -> bool:
@@ -14,7 +9,7 @@ def is_clockwise(p1: np.ndarray, p2: np.ndarray) -> bool:
 
     The pair of points must be two-dimensional.
     """
-    return _det(p1, p2) >= 0.0
+    return _utils.det(p1, p2) >= 0.0
 
 
 def is_clockwise_seg(p0: np.ndarray, p1: np.ndarray, p2: np.ndarray) -> bool:
@@ -31,7 +26,7 @@ def is_coclockwise(p1: np.ndarray, p2: np.ndarray) -> bool:
     # boundary condition where the vectors are colinear p1 and p2 are
     # simultaneously clockwise and counter-clockwise to each other in respect
     # to the origin.
-    return _det(p1, p2) <= 0.0
+    return _utils.det(p1, p2) <= 0.0
 
 
 def is_coclockwise_seg(p0: np.ndarray, p1: np.ndarray, p2: np.ndarray) -> bool:
@@ -44,7 +39,7 @@ def is_colinear(p1: np.ndarray, p2: np.ndarray) -> bool:
 
     The pair of points must be two-dimensional.
     """
-    return np.isclose(0.0, _det(p1, p2))
+    return np.isclose(0.0, _utils.det(p1, p2))
 
 
 def is_colinear_seg(p0: np.ndarray, p1: np.ndarray, p2: np.ndarray) -> bool:
@@ -52,7 +47,7 @@ def is_colinear_seg(p0: np.ndarray, p1: np.ndarray, p2: np.ndarray) -> bool:
 
     The pair of points must be two-dimensional.
     """
-    return np.isclose(0.0, _det(p1 - p0, p2 - p0))
+    return np.isclose(0.0, _utils.det(p1 - p0, p2 - p0))
 
 
 def is_left_turn(p0: np.ndarray, p1: np.ndarray, p2: np.ndarray) -> bool:
