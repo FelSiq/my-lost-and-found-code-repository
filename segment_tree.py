@@ -8,7 +8,7 @@ class SegmentTree:
     def __init__(self, values: t.Sequence[float]):
         self.size = len(values)
 
-        size = self._next_power_of_two(4 * len(values))
+        size = self._next_power_of_two(2 * len(values))
 
         self.tree = np.full(size, fill_value=np.inf)
         self.lazy = np.zeros(size)
@@ -74,8 +74,8 @@ class SegmentTree:
 
 
 def _test():
-    num_trees = 1000
-    num_tests = 500
+    num_trees = 2000
+    num_tests = 100
     max_size = 1000
     min_v = -100
     max_v = 100
