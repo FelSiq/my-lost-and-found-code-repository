@@ -48,13 +48,16 @@ class Trie:
 
         cur_node.terminal = True
 
-    def search(self, query: str) -> bool:
+    def search(self, query: str, prefix: bool = False) -> bool:
         cur_node = self.head
 
         for c in query:
-            cur_node = cur_node.insert(c)
+            if c not in cur_node:
+                return False
 
-        return cur_node.terminal
+            cur_node = cur_node[c]
+
+        return cur_node.terminal or prefix
 
     def _remove(self, i: int, node: _TrieNode, remove_prefix: bool) -> bool:
         if i == len(self._query):
@@ -81,8 +84,8 @@ class Trie:
 
 
 def _test():
-    num_tries = 2500
-    num_tests = 100
+    num_tries = 800
+    num_tests = 1000
 
     import random
 
@@ -99,28 +102,30 @@ def _test():
 
         for ts in np.arange(num_tests):
             print(f"  {ts + 1} / {num_tests} ...")
-            size = np.random.randint(1, 10)
+            size = np.random.randint(1, 99)
             inp = "".join(
                 map(chr, np.random.randint(ord("a"), ord("z") + 1, size=size))
             )
             trie.insert(inp)
 
-            assert inp in trie
+            assert inp in trie and trie.search(inp, prefix=False)
 
             hist.add(inp)
 
             if np.random.random() < 0.15:
                 rand_item = hist.pop()
-                remove_prefix = False and np.random.random() < 0.1667
+                remove_prefix = np.random.random() < 0.1667
                 pref_start = (
-                    np.random.randint(len(rand_item))
+                    np.random.randint(1 + len(rand_item))
                     if remove_prefix
                     else len(rand_item)
                 )
 
                 try:
                     trie.remove(rand_item[:pref_start], remove_prefix=remove_prefix)
-                    assert rand_item not in trie
+                    assert rand_item not in trie and not trie.search(
+                        rand_item, prefix=False
+                    )
 
                 except ValueError:
                     if not remove_prefix or pref_start > 0:
@@ -135,10 +140,11 @@ def _test():
 
                     for s in hist:
                         if s.startswith(prefix):
-                            assert s not in trie
+                            assert s not in trie and not trie.search(
+                                prefix, prefix=True
+                            )
 
                         else:
-                            assert s in trie
                             new_hist.add(s)
 
                     hist = new_hist
