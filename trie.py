@@ -84,13 +84,13 @@ class Trie:
 
 
 def _test():
-    num_tries = 800
-    num_tests = 1000
+    num_tries = 300
+    num_tests = 1100
 
     import random
 
-    np.random.seed(16)
-    random.seed(16)
+    np.random.seed(32)
+    random.seed(32)
 
     debug = False
 
@@ -101,7 +101,7 @@ def _test():
         hist = set()
 
         for ts in np.arange(num_tests):
-            print(f"  {ts + 1} / {num_tests} ...")
+            print(f"  {ts + 1} / {num_tests} ...", end="\r")
             size = np.random.randint(1, 99)
             inp = "".join(
                 map(chr, np.random.randint(ord("a"), ord("z") + 1, size=size))
@@ -111,6 +111,12 @@ def _test():
             assert inp in trie and trie.search(inp, prefix=False)
 
             hist.add(inp)
+
+            aux = "".join(
+                map(chr, np.random.randint(ord("a"), ord("z") + 1, size=size))
+            )
+
+            assert aux in hist or not trie.search(aux, prefix=False)
 
             if np.random.random() < 0.15:
                 rand_item = hist.pop()
