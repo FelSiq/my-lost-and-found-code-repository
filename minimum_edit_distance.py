@@ -1,8 +1,9 @@
-"""
-insert
-delete
-replace
-swap?
+"""Minimum edit distance between two strings.
+
+Using Levenshtein distance:
+- cost of insert: 1
+- cost of delete: 1
+- cost of replace: 2
 """
 
 
@@ -19,6 +20,9 @@ def med_rec(word_a: str, word_b: str) -> int:
 
         else:
             ret = 1 + min(rec(i + 1, j), rec(i, j + 1))
+
+            # If cost of replace = 1:
+            # ret = 1 + min(rec(i + 1, j), rec(i, j + 1), rec(i + 1, j + 1))
 
         memo[i][j] = ret
 
@@ -46,17 +50,20 @@ def med(word_a: str, word_b: str) -> int:
             else:
                 memo[im][j] = 1 + min(memo[imm][j], memo[im][j - 1])
 
+                # If cost of replace = 1:
+                # memo[im][j] = 1 + min(memo[imm][j], memo[im][j - 1], memo[imm][j - 1])
+
     return memo[len(word_a) % 2][-1]
 
 
 def _test():
     assert med("abc", "abcd") == 1
+    assert med("abc", "dbc") == 2
     assert med("abc", "abdc") == 1
     assert med("abc", "dabc") == 1
     assert med("abc", "adbc") == 1
     assert med("abc", "adabc") == 2
     assert med("dabc", "adabc") == 1
-    assert med("abc", "acb") == 1
     print("ok")
 
     import random
