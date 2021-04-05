@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 
-def proj_point_to_line(p, line_coeffs):
+def proj_point_to_line_analytical(p, line_coeffs):
     b, a = line_coeffs
     x, y = p
 
@@ -18,22 +18,34 @@ def proj_point_to_line(p, line_coeffs):
     return proj
 
 
+def proj_point_to_line_vector(p, line_coeffs):
+    b, a = line_coeffs
+
+    l_vec = np.asfarray([1.0, a])
+    shift = np.asfarray([0.0, b])
+
+    p = np.asfarray(p) - shift
+    proj = float(np.dot(p, l_vec)) / float(np.dot(l_vec, l_vec)) * l_vec
+    proj += shift
+
+    return proj
+
+
 def _test():
     fig, axes = plt.subplots(2, 2, figsize=(8, 8))
+    method = proj_point_to_line_analytical
 
     line_coeffs = [-5, 5 / 3]
     p = [-4, 5]
-    res = proj(p, line_coeffs)
+    res = method(p, line_coeffs)
     expected = (57 / 17, 10 / 17)
-    print(res)
-    print(expected)
     assert np.allclose(res, expected)
 
     for i in np.arange(4):
-        point = 2 * np.random.randn(2)
-        b, a = 2 * np.random.randn(2)
+        point = 16 * np.random.randn(2)
+        b, a = 16 * np.random.randn(2)
         line_coeffs = [b, a]
-        proj_point = proj(point, line_coeffs)
+        proj_point = method(point, line_coeffs)
 
         min_plot, max_plot = np.quantile([*point, *proj_point], (0, 1))
         min_plot -= 5
@@ -58,8 +70,8 @@ def _test():
         )
         ax.legend()
 
-        test = np.dot(proj_point - [0, b] - point, [1, a])
-        # assert np.isclose(0, test), test
+        test = np.dot(proj_point - point, [1, a])
+        assert np.isclose(0, test), test
 
     plt.show()
 
