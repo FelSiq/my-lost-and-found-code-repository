@@ -3,8 +3,11 @@ import numpy as np
 import vector_projection
 
 
-def gram_schmidit(vectors: np.ndarray) -> np.ndarray:
-    k = min(*vectors.shape)
+def gram_schmidt(vectors: np.ndarray, mode: str = "reduced") -> np.ndarray:
+    assert mode in {"reduced", "complete"}
+
+    k = min(*vectors.shape) if mode == "reduced" else vectors.shape[1]
+
     basis = np.copy(vectors[:, :k]).astype(float, copy=False)
 
     for i, vec in enumerate(basis.T):
