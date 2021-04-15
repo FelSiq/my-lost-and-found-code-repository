@@ -13,12 +13,12 @@ def qr(mat: np.ndarray):
 
 
 def _test():
-    mats = np.random.randn(30, 7, 6)
+    mats = np.random.randn(1000, 2, 15)
     for mat in mats:
+        Q_ref, R_ref = np.linalg.qr(mat)
         Q, R = qr(mat)
-        dot = Q @ R
-        assert np.allclose(dot, mat), dot - mat
-        assert np.isclose(0, float(np.sum(R[np.tril_indices_from(R, k=-1)])))
+        assert np.allclose(np.abs(Q.T @ Q_ref), np.eye(Q.shape[1]))
+        assert np.allclose(np.abs(R), np.abs(R_ref))
 
 
 if __name__ == "__main__":
