@@ -19,9 +19,14 @@ def slow_project_u_onto_v(u, v):
     return magnitude_of_projection_of_u_onto_v(u, v) * direction_of_projection(v)
 
 
-def project_u_onto_v(u, v):
+def project_u_onto_v(u, v, assume_v_unitary: bool = False):
     # Just combinint all functions above into one.
-    return np.dot(u, v) / (np.linalg.norm(v) ** 2) * v
+    proj = np.dot(u, v) * v
+
+    if not assume_v_unitary:
+        proj /= np.linalg.norm(v) ** 2
+
+    return proj
 
 
 def _test():
