@@ -22,7 +22,7 @@ class _FourierApproxABBase:
 
 
 class _FourierApproxCBase:
-    def __init__(self, max_components: int = 256, L: float = 1.0):
+    def __init__(self, max_components: int = 512, L: float = 1.0):
         assert int(max_components) > 0
         assert L > 0.0
 
@@ -157,7 +157,15 @@ class SlowFourierApproxC(_FourierApproxCBase):
 
 def _test():
     import matplotlib.pyplot as plt
+    import svgpathtools
 
+    paths, attr = svgpathtools.svg2paths("porcupine-svgrepo-com.svg")
+    X = np.hstack([ np.array(curve[:-1]) for path in paths for curve in path ])
+    X = np.conjugate(X)
+    min_, L = np.quantile(X.real, (0, 1))
+    X += min_
+
+    """
     x = np.linspace(0, 2 * np.pi, 200 + int(np.random.random() > 0.5))
     trend = np.linspace(0, 5 * np.random.random(), x.size // 2)
     X = (
@@ -168,34 +176,36 @@ def _test():
     # X += 0.1 * np.random.randn(x.size)
     X[: x.size // 2] += trend
     X[(x.size + 1) // 2 :] += trend[-1] - trend
+    L = 2 * np.pi
+    """
 
-    ref_ab = FastFourierApproxAB(L=2 * np.pi)
-    ref_ab_slow = SlowFourierApproxAB(L=2 * np.pi)
-    ref_c = FastFourierApproxC(L=2 * np.pi)
-    ref_c_slow = SlowFourierApproxC(L=2 * np.pi)
+    ref_ab = FastFourierApproxAB(L=L)
+    ref_ab_slow = SlowFourierApproxAB(L=L)
+    ref_c = FastFourierApproxC(max_components=X.size, L=L)
+    ref_c_slow = SlowFourierApproxC(max_components=X.size, L=L)
 
     approx_ab = ref_ab.transform(X)
     approx_ab_slow = ref_ab_slow.transform(X)
     approx_c = ref_c.transform(X)
     approx_c_slow = ref_c_slow.transform(X)
 
-    assert np.allclose(approx_ab, approx_ab_slow)
-    assert np.allclose(approx_ab, approx_c_slow)
-    assert np.allclose(approx_ab, approx_c)
+    # assert np.allclose(approx_ab, approx_ab_slow)
+    # assert np.allclose(approx_ab, approx_c_slow)
+    # assert np.allclose(approx_ab, approx_c)
     print(f"RMSE: {np.sqrt(np.mean(np.square(approx_ab[5:-5] - X[5:-5]))):.4f}")
 
     fig, (ax1, ax2) = plt.subplots(2, figsize=(10, 10))
 
     ax1.set_title("AB Approximation")
-    ax1.plot(X, label="original")
-    ax1.plot(approx_ab, label="fast")
-    ax1.plot(approx_ab_slow, label="slow")
+    ax1.plot(X.real, X.imag, label="original")
+    ax1.plot(approx_ab.real, approx_ab.imag, label="fast")
+    ax1.plot(approx_ab_slow.real, approx_ab_slow.imag, label="slow")
     ax1.legend()
 
     ax2.set_title("C Approximation")
-    ax2.plot(X, label="original")
-    ax2.plot(approx_c.real, label="fast")
-    ax2.plot(approx_c_slow.real, label="slow")
+    ax2.plot(X.real, X.imag, label="original")
+    ax2.plot(approx_c.real, approx_c.imag, label="fast")
+    ax2.plot(approx_c_slow.real, approx_c.imag, label="slow")
     ax2.legend()
 
     plt.show()
