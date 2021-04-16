@@ -8,7 +8,7 @@ import function_projection
 
 
 class _FourierApproxBase:
-    def __init__(self, max_components: int = 200, L: float = 1.0):
+    def __init__(self, max_components: int = 128, L: float = 1.0):
         assert int(max_components) > 0
         assert L > 0.0
 
@@ -36,25 +36,19 @@ class FastFourierApprox(_FourierApproxBase):
         #                        = 1 / function_projection.func_norm(sin, dt)
         norm_sqr_cos_sin = 2.0 / self.L
 
-        self.A0 = np.squeeze(scipy.integrate.trapezoid(X, dx=dt) * norm_sqr_cos_sin)
+        X_norm = X * norm_sqr_cos_sin
 
-        self.Ak = (
-            scipy.integrate.trapezoid(X * cos, dx=dt, axis=1)[:, np.newaxis]
-            * norm_sqr_cos_sin
-        )
-
-        self.Bk = (
-            scipy.integrate.trapezoid(X * sin, dx=dt, axis=1)[:, np.newaxis]
-            * norm_sqr_cos_sin
-        )
+        self.A0 = np.squeeze(scipy.integrate.trapezoid(X_norm, dx=dt))
+        self.Ak = scipy.integrate.trapezoid(X_norm * cos, dx=dt, axis=1)
+        self.Bk = scipy.integrate.trapezoid(X_norm * sin, dx=dt, axis=1)
 
         data_max_comp = (X.size - 2) // 2
         self.Ak[data_max_comp:] = self.Bk[data_max_comp:] = 0.0
 
-        ff = 0.5 * self.A0 + np.sum(self.Ak * cos + self.Bk * sin, axis=0)
+        Ak = np.expand_dims(self.Ak, axis=1)
+        Bk = np.expand_dims(self.Bk, axis=1)
 
-        self.Ak = self.Ak.ravel()
-        self.Bk = self.Bk.ravel()
+        ff = 0.5 * self.A0 + np.sum(Ak * cos + Bk * sin, axis=0)
 
         return ff
 
@@ -117,7 +111,6 @@ def _test():
 
     diff = np.abs(approx[5:-5] - X[5:-5])
     aux = diff.argmax()
-    print(X.size, aux, diff[aux])
     assert np.allclose(approx, approx_slow)
     print(f"RMSE: {np.sqrt(np.mean(np.square(approx[5:-5] - X[5:-5]))):.4f}")
 
