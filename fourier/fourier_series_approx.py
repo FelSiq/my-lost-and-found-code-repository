@@ -7,8 +7,8 @@ sys.path.append("../geometry")
 import function_projection
 
 
-class _FourierApproxBase:
-    def __init__(self, max_components: int = 128, L: float = 1.0):
+class _FourierApproxABBase:
+    def __init__(self, max_components: int = 256, L: float = 1.0):
         assert int(max_components) > 0
         assert L > 0.0
 
@@ -21,9 +21,23 @@ class _FourierApproxBase:
         raise NotImplementedError
 
 
-class FastFourierApprox(_FourierApproxBase):
+class _FourierApproxCBase:
+    def __init__(self, max_components: int = 256, L: float = 1.0):
+        assert int(max_components) > 0
+        assert L > 0.0
+
+        self.max_components = int(max_components)
+        self.L = L
+
+        self.C = np.empty(0)
+
     def transform(self, X):
-        X = np.asarray(X)
+        raise NotImplementedError
+
+
+class FastFourierApproxAB(_FourierApproxABBase):
+    def transform(self, X):
+        X = np.asarray(X).ravel()
         t = np.linspace(0, self.L, X.size)
         dt = t[1] - t[0]
 
@@ -39,8 +53,8 @@ class FastFourierApprox(_FourierApproxBase):
         X_norm = X * norm_sqr_cos_sin
 
         self.A0 = np.squeeze(scipy.integrate.trapezoid(X_norm, dx=dt))
-        self.Ak = scipy.integrate.trapezoid(X_norm * cos, dx=dt, axis=1)
-        self.Bk = scipy.integrate.trapezoid(X_norm * sin, dx=dt, axis=1)
+        self.Ak = scipy.integrate.trapezoid(X_norm * np.conjugate(cos), dx=dt, axis=1)
+        self.Bk = scipy.integrate.trapezoid(X_norm * np.conjugate(sin), dx=dt, axis=1)
 
         data_max_comp = (X.size - 2) // 2
         self.Ak[data_max_comp:] = self.Bk[data_max_comp:] = 0.0
@@ -48,45 +62,97 @@ class FastFourierApprox(_FourierApproxBase):
         Ak = np.expand_dims(self.Ak, axis=1)
         Bk = np.expand_dims(self.Bk, axis=1)
 
-        ff = 0.5 * self.A0 + np.sum(Ak * cos + Bk * sin, axis=0)
+        X_approx = 0.5 * self.A0 + np.sum(Ak * cos + Bk * sin, axis=0)
 
-        return ff
+        return X_approx
 
 
-class SlowFourierApprox(_FourierApproxBase):
+class SlowFourierApproxAB(_FourierApproxABBase):
     def _compute_Ak_coeff(self, X: np.ndarray, t: np.ndarray, dt: float, k: int):
         cos = np.cos(2.0 * np.pi / self.L * k * t)
         proj = function_projection.project_f_onto_g(f=X, g=cos, dx=dt)
-        return proj, cos
+        # Note: could be any index since the Ak is the same for all t
+        Ak = proj[-1] / (1e-7 + cos[-1])
+        return proj, Ak
 
     def _compute_Bk_coeff(self, X: np.ndarray, t: np.ndarray, dt: float, k: int):
         sin = np.sin(2.0 * np.pi / self.L * k * t)
         proj = function_projection.project_f_onto_g(f=X, g=sin, dx=dt)
-        return proj, sin
+        # Note: could be any index since the Bk is the same for all t
+        Bk = proj[-1] / (1e-7 + sin[-1])
+        return proj, Bk
 
     def transform(self, X):
-        X = np.asarray(X)
+        X = np.asarray(X).ravel()
         t = np.linspace(0, self.L, X.size)
         dt = t[1] - t[0]
 
-        ff, _ = self._compute_Ak_coeff(X, t, dt, k=0)
-        self.A0 = 2.0 * ff[0]
-        self.Ak, self.Bk = np.zeros((2, self.max_components))
+        X_approx, _ = self._compute_Ak_coeff(X, t, dt, k=0)
+        self.A0 = 2.0 * X_approx[0]
+        self.Ak, self.Bk = np.zeros((2, self.max_components), dtype=complex)
 
         for k in np.arange(1, 1 + min((X.size - 2) // 2, self.max_components)):
-            proj_cos, cos = self._compute_Ak_coeff(X, t, dt, k)
-            proj_sin, sin = self._compute_Bk_coeff(X, t, dt, k)
+            proj_cos, Ak = self._compute_Ak_coeff(X, t, dt, k)
+            proj_sin, Bk = self._compute_Bk_coeff(X, t, dt, k)
 
-            # Note: could be any index since Ak and Bk are all the same for all t
-            Ak = proj_cos[-1] / (1e-7 + cos[-1])
-            Bk = proj_sin[-1] / (1e-7 + sin[-1])
-
-            ff += proj_cos + proj_sin
+            X_approx += proj_cos + proj_sin
 
             self.Ak[k - 1] = Ak
             self.Bk[k - 1] = Bk
 
-        return ff
+        return X_approx
+
+
+class FastFourierApproxC(_FourierApproxCBase):
+    def transform(self, X):
+        X = np.asarray(X).ravel()
+        t = np.linspace(0, self.L, X.size)
+        dt = t[1] - t[0]
+
+        upp_lim = min((X.size - 2) // 2, self.max_components // 2)
+        low_lim = -upp_lim
+
+        k = np.arange(low_lim, upp_lim + 1)
+
+        basis = np.exp(2.0j * np.pi / self.L * np.outer(k, t))
+
+        # Note: self.L = function_projection.func_norm(basis[k], dt) ** 2, for any k
+        self.C = (
+            scipy.integrate.trapezoid(X * np.conjugate(basis), dx=dt, axis=1) / self.L
+        )
+
+        C = np.expand_dims(self.C, axis=1)
+
+        X_approx = np.sum(C * basis, axis=0)
+
+        return X_approx
+
+
+class SlowFourierApproxC(_FourierApproxCBase):
+    def _compute_projection(self, X: np.ndarray, t: np.ndarray, dt: float, k: int):
+        basis = np.exp(1j * 2.0 * np.pi / self.L * k * t)
+        proj = function_projection.project_f_onto_g(X, basis, dt)
+        # Note: could be any index since the Ck is the same for all t
+        Ck = proj[-1] / (1e-7 + basis[-1])
+        return proj, Ck
+
+    def transform(self, X):
+        X = np.asarray(X).ravel()
+        t = np.linspace(0, self.L, X.size)
+        dt = t[1] - t[0]
+
+        X_approx = np.zeros_like(X, dtype=complex)
+
+        upp_lim = min((X.size - 2) // 2, self.max_components // 2)
+        low_lim = -upp_lim
+        self.C = np.zeros(upp_lim - low_lim + 1, dtype=complex)
+
+        for i, k in enumerate(np.arange(low_lim, upp_lim + 1)):
+            proj, Ck = self._compute_projection(X, t, dt, k)
+            X_approx += proj
+            self.C[i] = Ck
+
+        return X_approx
 
 
 def _test():
@@ -103,27 +169,33 @@ def _test():
     X[: x.size // 2] += trend
     X[(x.size + 1) // 2 :] += trend[-1] - trend
 
-    ref = FastFourierApprox(L=2 * np.pi)
-    ref_slow = SlowFourierApprox(L=2 * np.pi)
+    ref_ab = FastFourierApproxAB(L=2 * np.pi)
+    ref_ab_slow = SlowFourierApproxAB(L=2 * np.pi)
+    ref_c = FastFourierApproxC(L=2 * np.pi)
+    ref_c_slow = SlowFourierApproxC(L=2 * np.pi)
 
-    approx = ref.transform(X)
-    approx_slow = ref_slow.transform(X)
+    approx_ab = ref_ab.transform(X)
+    approx_ab_slow = ref_ab_slow.transform(X)
+    approx_c = ref_c.transform(X)
+    approx_c_slow = ref_c_slow.transform(X)
 
-    diff = np.abs(approx[5:-5] - X[5:-5])
-    aux = diff.argmax()
-    assert np.allclose(approx, approx_slow)
-    print(f"RMSE: {np.sqrt(np.mean(np.square(approx[5:-5] - X[5:-5]))):.4f}")
+    assert np.allclose(approx_ab, approx_ab_slow)
+    assert np.allclose(approx_ab, approx_c_slow)
+    assert np.allclose(approx_ab, approx_c)
+    print(f"RMSE: {np.sqrt(np.mean(np.square(approx_ab[5:-5] - X[5:-5]))):.4f}")
 
     fig, (ax1, ax2) = plt.subplots(2, figsize=(10, 10))
 
-    ax1.set_title("Fast Approximation")
+    ax1.set_title("AB Approximation")
     ax1.plot(X, label="original")
-    ax1.plot(approx, label="approx fast")
+    ax1.plot(approx_ab, label="fast")
+    ax1.plot(approx_ab_slow, label="slow")
     ax1.legend()
 
-    ax2.set_title("Slow Approximation")
+    ax2.set_title("C Approximation")
     ax2.plot(X, label="original")
-    ax2.plot(approx_slow, label="approx slow")
+    ax2.plot(approx_c.real, label="fast")
+    ax2.plot(approx_c_slow.real, label="slow")
     ax2.legend()
 
     plt.show()
