@@ -10,8 +10,7 @@ def spectral_derivative(X, X_lims=(0, 1)):
     z = np.fft.fft(X)
     L = X_lims[1] - X_lims[0]
 
-    fundamental_freq = 2.0 * np.pi / L
-    kappa = fundamental_freq * np.arange(-n / 2, n / 2)
+    kappa = 2.0 * np.pi / L * np.arange(-n / 2, n / 2)
     kappa = np.fft.fftshift(kappa)
 
     deriv = np.real(np.fft.ifft(1j * kappa * z))
