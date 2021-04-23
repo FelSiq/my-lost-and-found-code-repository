@@ -41,10 +41,14 @@ def gabor_transform(X, window_size: int = 256, noverlap: int = 32):
 def _test():
     import scipy.signal
     import matplotlib.pyplot as plt
-    import pandas as pd
 
-    X = pd.read_csv("ts.csv", index_col="timeseries_id")
-    X = X.iloc[0, :-1].values.astype(float)
+    t = np.linspace(-2, 2, 1000)
+    X = (
+        3 * np.cos(2 * np.pi * 0.5 * t) * np.exp(-(t ** 2) / 2)
+        + (-50 * t ** 2 + 5 * np.sin(2 * np.pi * 5 * t)) * np.exp(-(t ** 2) / 0.5)
+        + 1
+    )
+    X += 0.5 * np.random.randn(X.size)
 
     window_size = 8
     noverlap = 4
