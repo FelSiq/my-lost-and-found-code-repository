@@ -147,18 +147,21 @@ class SlowFourierApproxC(_FourierApproxCBase):
         t = np.linspace(0, self.L, X.size)
         dt = t[1] - t[0]
 
-        X_approx = np.zeros_like(X, dtype=complex)
-
         upp_lim = min((X.size - 2) // 2, self.max_components // 2)
         low_lim = -upp_lim
         self.C = np.zeros(upp_lim - low_lim + 1, dtype=complex)
 
+        X_approx = np.zeros((self.C.size, X.size), dtype=complex)
+
         for i, k in enumerate(np.arange(low_lim, upp_lim + 1)):
             proj, Ck = self._compute_projection(X, t, dt, k)
-            X_approx += proj
+            X_approx[i, :] = proj
             self.C[i] = Ck
 
-        return X_approx
+        if self.sum_components:
+            X_approx = np.sum(X_approx, axis=0)
+
+        return X_approx.astype(X.dtype)
 
 
 def _test_01():
@@ -261,5 +264,5 @@ def _test_02():
 
 
 if __name__ == "__main__":
-    # _test_01()
+    _test_01()
     _test_02()
