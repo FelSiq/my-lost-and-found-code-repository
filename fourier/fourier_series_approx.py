@@ -249,7 +249,7 @@ def _test_02():
 
         return interps
 
-    paths, attr = svgpathtools.svg2paths("porcupine-svgrepo-com.svg")
+    paths, attr = svgpathtools.svg2paths("animal-svgrepo-com.svg")
     X = np.hstack([interpolate(curve[:-1]) for path in paths for curve in path])
     X = np.conjugate(X)
     min_real, max_real = np.quantile(X.real, (0, 1))
@@ -260,7 +260,14 @@ def _test_02():
     ref = FastFourierApproxC(max_components=X.size, L=L, sum_components=False)
     approx = ref.transform(X)
 
-    draw_coeffs.draw(X, approx.T, xlim=(min_real, max_real), ylim=(min_imag, max_imag))
+    lim_real_extra = 0.25 * (max_real - min_real)
+    lim_imag_extra = 0.25 * (max_imag - min_imag)
+    draw_coeffs.draw(
+        X,
+        approx.T,
+        xlim=(-lim_real_extra, lim_real_extra + max_real - min_real),
+        ylim=(min_imag - lim_imag_extra, max_imag + lim_imag_extra),
+    )
 
 
 if __name__ == "__main__":
