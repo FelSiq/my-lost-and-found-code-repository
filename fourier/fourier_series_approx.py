@@ -22,7 +22,9 @@ class _FourierApproxABBase:
 
 
 class _FourierApproxCBase:
-    def __init__(self, max_components: int = 512, L: float = 1.0):
+    def __init__(
+        self, max_components: int = 512, L: float = 1.0, sum_components: bool = True
+    ):
         assert int(max_components) > 0
         assert L > 0.0
 
@@ -30,6 +32,7 @@ class _FourierApproxCBase:
         self.L = L
 
         self.C = np.empty(0)
+        self.sum_components = sum_components
 
     def transform(self, X):
         raise NotImplementedError
@@ -123,9 +126,12 @@ class FastFourierApproxC(_FourierApproxCBase):
 
         C = np.expand_dims(self.C, axis=1)
 
-        X_approx = np.sum(C * basis, axis=0)
+        X_approx = C * basis
 
-        return X_approx
+        if self.sum_components:
+            X_approx = np.sum(X_approx, axis=0)
+
+        return X_approx.astype(X.dtype)
 
 
 class SlowFourierApproxC(_FourierApproxCBase):
@@ -155,12 +161,12 @@ class SlowFourierApproxC(_FourierApproxCBase):
         return X_approx
 
 
-def _test():
+def _test_01():
     import matplotlib.pyplot as plt
     import svgpathtools
 
     paths, attr = svgpathtools.svg2paths("porcupine-svgrepo-com.svg")
-    X = np.hstack([ np.array(curve[:-1]) for path in paths for curve in path ])
+    X = np.hstack([np.array(curve[:-1]) for path in paths for curve in path])
     X = np.conjugate(X)
     min_, L = np.quantile(X.real, (0, 1))
     X += min_
@@ -211,5 +217,49 @@ def _test():
     plt.show()
 
 
+def _test_02():
+    import svgpathtools
+
+    import draw_coeffs
+
+    t = np.linspace(0, 1, 3)
+
+    def interpolate(X):
+        X = np.asarray(X, dtype=complex)
+
+        if X.size == 1:
+            return X
+
+        interps = []
+
+        for i in range(X.size - 1):
+            c = X[i]
+            c_next = X[i + 1]
+
+            interp_real = c.real + (c_next.real - c.real) * t
+            interp_imag = c.imag + (c_next.imag - c.imag) * t
+
+            interp = interp_real + 1j * interp_imag
+            interps.append(interp)
+
+        interps = np.concatenate(interps)
+
+        return interps
+
+    paths, attr = svgpathtools.svg2paths("porcupine-svgrepo-com.svg")
+    X = np.hstack([interpolate(curve[:-1]) for path in paths for curve in path])
+    X = np.conjugate(X)
+    min_real, max_real = np.quantile(X.real, (0, 1))
+    min_imag, max_imag = np.quantile(X.imag, (0, 1))
+    X -= min_real
+    L = max_real - min_real
+
+    ref = FastFourierApproxC(max_components=X.size, L=L, sum_components=False)
+    approx = ref.transform(X)
+
+    draw_coeffs.draw(X, approx.T, xlim=(min_real, max_real), ylim=(min_imag, max_imag))
+
+
 if __name__ == "__main__":
-    _test()
+    # _test_01()
+    _test_02()
