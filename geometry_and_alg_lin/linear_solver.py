@@ -13,6 +13,24 @@ class LinearSolver:
         return self
 
     def transform(self, X, y):
+        """Solve Xw = y.
+
+        X shape is (n, m);
+        w shape is (m, 1);
+        y shape is (n, 1).
+
+        Returns
+        -------
+        If `return_all_sol`=False, return a particular solution with
+            shape (m,).
+
+        If `return_all_sol`=True, return an array with shape (m, 1 + m - r),
+        where `r` is rank(X), where the first column as a particular
+        solution for Xw = b, and all subsequent columns form a basis to the
+        Null Space of X. In other words, all possible solutions for Xw = b
+        are the particular solution (res[:, 0]) plus all linear combinations
+        of the special solutions (res[:, 1:]).
+        """
         X, y = self._rref.transform(X, y)
 
         n, m = X.shape
@@ -41,9 +59,10 @@ def _test():
     np.random.seed(1)
 
     n, m = np.random.randint(1, 10, size=2)
+    print(n, m)
     X = np.random.randn(n, m)
     coeffs = np.random.randn(m)
-    y = X @ coeffs
+    y = np.zeros(n)
 
     res = solver.transform(X, y)
 
