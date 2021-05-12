@@ -71,6 +71,7 @@ class RREF:
             r += 1
             c += 1
 
+        self.col_inds_free.extend(list(range(c, m)))
         r -= 1
 
         for c in reversed(self.col_inds_pivot):
