@@ -1,7 +1,10 @@
+"""Transform a matrix to its Row Reduced Echelon Form."""
 import numpy as np
 
 
-class RREF:
+class GaussJordanElimination:
+    """Transform a matrix to its Row Reduced Echelon Form."""
+
     def __init__(self, threshold: float = 1e-7, copy: bool = True):
         self.copy = copy
 
@@ -94,11 +97,11 @@ def _test():
         ]
     )
 
-    rref = RREF()
-    res_X = rref.transform(X)
+    gje = GaussJordanElimination()
+    rref_X = gje.transform(X)
 
     print(X)
-    print(res_X)
+    print(rref_X)
 
 
 if __name__ == "__main__":

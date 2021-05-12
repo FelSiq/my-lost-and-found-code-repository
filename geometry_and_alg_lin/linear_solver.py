@@ -1,3 +1,4 @@
+"""Solves Ax = b, if possible."""
 import numpy as np
 
 import rref
@@ -7,7 +8,7 @@ class LinearSolver:
     def __init__(self, return_all_sol: bool = True):
         self.return_all_sol = return_all_sol
 
-        self._rref = rref.RREF()
+        self._rref = rref.GaussJordanElimination()
 
     def fit(self, X, y):
         return self
