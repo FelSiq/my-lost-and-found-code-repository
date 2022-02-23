@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <!--
+    The metatag below is revelant for responsive designs in mobile devices,
+    as it prevents the device browser zooming out to show the entire page
+    even before the responsive dimension calculations (from media css).
+    See: https://getbootstrap.com/docs/5.1/getting-started/introduction/#responsive-meta-tag
+  -->
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <title>Page title</title>
+
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
+  <link rel="stylesheet" href="css/main.css">
+</head>  
+<body>
+  <header>
+    Header
+    <nav>
+      <ul>
+	<li><a href="index.html">Item 1</a></li>
+	<li><a href="index.html">Item 2</a></li>
+	<li><a href="index.html">Item 3</a></li>
+	<li><a href="https://github.com" target="blank_">Link to GitHub</a></li>
+      </ul>
+    </nav>
+  </header>
+  <h1 id="h1">First heading</h1>
+
+  Note: <a href="#article-2" title="Always set title in your anchors for screen readers.">Go to article</a>
+
+  <section class="my-section">
+    <article>Special characters:</article>
+    <ul>
+      <li>Non-breaking space: "&nbsp;" (do not span for larger spaces, use margin style instead)</li>
+      <li>Copyright: "&copy;"</li>
+      <li>Quotes: &quot; (for old, limited encodings)</li>
+    </ul>
+    <article id="article-2">Characters that must be scaped:</article>
+    <ul>
+      <li>&lt;</li>
+      <li>&gt;</li>
+      <li>&amp;</li>
+    </ul>
+  </section>
+
+  <p class="column">
+    Et disputando error aut senectus oportere corrumpit. Habeo quando magna at accumsan platonem at. Turpis rationibus mentitum accommodare mattis modus neque! Iriure in saperet denique tale fuga maximus. Inimicus agam fusce adversarium dolor omnis eos. Insolens iuvaret nibh honestatis mea cotidieque summo. Adipisci vituperata doming et indoctum magna dis.
+    Sapien urbanitas mei argumentum dissentiet tellus alia. Audire tale meliore mel audire quod consul. Ligula adversarium torquatos quando persius eu zril. Massa audiam honestatis eu adversariu m deserunt insolens! Dolores congue ignota commodo aliquam accumsan interesset. Nunc urbanitas tamquam adhuc porta audire no! Numquam ei habemus bibendum animal est modus.
+  </p>
+  <p class="column">
+    Sapien urbanitas mei argumentum dissentiet tellus alia. Audire tale meliore mel audire quod consul. Ligula adversarium torquatos quando persius eu zril. Massa audiam honestatis eu adversariu m deserunt insolens! Dolores congue ignota commodo aliquam accumsan interesset. Nunc urbanitas tamquam adhuc porta audire no! Numquam ei habemus bibendum animal est modus.
+    Et disputando error aut senectus oportere corrumpit. Habeo quando magna at accumsan platonem at. Turpis rationibus mentitum accommodare mattis modus neque! Iriure in saperet denique tale fuga maximus. Inimicus agam fusce adversarium dolor omnis eos. Insolens iuvaret nibh honestatis mea cotidieque summo. Adipisci vituperata doming et indoctum magna dis.
+  </p>
+
+  <div class="box-container">
+    <p class="box" id="box-1"></p>
+    <p class="box" id="box-2"></p>
+    <p class="box" id="box-3"></p>
+    <p class="box" id="box-4"></p>
+  </div>
+
+  <div class="container-fluid">
+    <div class="row">
+      <div class="col-lg-6">
+        Ignota scripta porta pede persius solet gravida? Dignissim sed no el aliquip ea putant. Pertinax consul utinam urna eam ei pericula. Nisl laboramus dolor in modo dicta hendrerit. Ac dicat aeque forensibus audire arcu diam. Mauris eum velit eloquentiam el risus antiopam. Varius neque utroque ornatus platonem wisi vulputate.     
+      </div>
+      <div class="col-lg-6" style="border: 1px solid">
+        Primis iudico his eu eum alia malesuada. Neque pede dissentiet laoreet a turpis inani. Efficiendi hinc el duo ultrices lectus zril. Harum numquam convenire perfecto blandit patrioque aliquet? Eget illum id honestatis minimum erant probo. Oblique omittantur maecenas illum malesuada ceteros utinam. Orci o eu bonorum consectetur tale adversarium.
+      </div>
+    </div>
+  </div>
+
+  <aside>
+    Aside.
+  </aside>
+  <footer>
+    <a href="#h1">Back to top.</a>
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p" crossorigin="anonymous"></script>
+
+</body>
+</html>
