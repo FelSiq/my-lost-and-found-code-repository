@@ -1,0 +1,18 @@
+[tool.poetry]
+name = "mermaid_online_rendering"
+version = "0.1.0"
+description = "Render Mermaid diagrams locally, and generate pdfs."
+authors = ["felsiq <felipe.siqueira@usp.br>"]
+license = "MIT"
+
+[tool.poetry.dependencies]
+python = "^3.10"
+Flask = "^2.1.1"
+Flask-Cors = "^3.0.10"
+
+[tool.poetry.dev-dependencies]
+black = "^22.3.0"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"

@@ -4,7 +4,7 @@
     <meta charset="utf-8"></meta>
     <title>Mermaid to PDF</title>
     <link href="style.css" rel="stylesheet"></link>
-    <link href="favicon.ico" rel="icon" type="image/x-icon"></link>
+    <link href="favicon.ico" rel="shortcut icon" type="image/x-icon"></link>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
   </head>
 
@@ -27,6 +27,9 @@
     <div id="action-panel">
       <label for="render-bg-color">Render background color:</label>
       <input type="text" id="render-bg-color" name="bg-color" value="#FFFFFF" minlength="6" maxlength="7"></input>
+      <label for="render-bg-color">Output URI:</label>
+      <input type="text" id="output-uri" name="output-uri" value="./output.pdf"></input>
+      <button id="button-gen-pdf"> Generate .pdf </button>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
