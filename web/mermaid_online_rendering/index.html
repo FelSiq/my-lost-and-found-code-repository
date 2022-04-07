@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8"></meta>
+    <title>Mermaid to PDF</title>
+    <link href="style.css" rel="stylesheet"></link>
+    <link href="favicon.ico" rel="icon" type="image/x-icon"></link>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+  </head>
+
+  <body>
+    <div id="view-panel">
+      <div class="column" id="col-code">
+        <h2> Mermaid code </h2>
+        <hr></hr>
+        <textarea id="code-area" name="code-area">flowchart TB&#13;a --> b</textarea>
+      </div>
+      <div class="column" id="col-render">
+        <h2> Mermaid render </h2>
+        <hr></hr>
+        <div class="mermaid" id="render-area">
+          flowchart TB
+          a --> b
+        </div>
+      </div>
+    </div>
+    <div id="action-panel">
+      <label for="render-bg-color">Render background color:</label>
+      <input type="text" id="render-bg-color" name="bg-color" value="#FFFFFF" minlength="6" maxlength="7"></input>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <script src="scripts/main.js"></script>
+
+  </body>
+</html>

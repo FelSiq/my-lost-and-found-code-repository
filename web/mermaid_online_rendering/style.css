@@ -1,0 +1,82 @@
+* {
+  box-sizing: border-box;
+  color: white;
+}
+
+body {
+  background-color: #343531;
+}
+
+h2 {
+  font-size: 12px;
+  margin: 2px;
+  margin-bottom: 8px;
+  padding: 0px;
+}
+
+#code-area {
+  font-size: 16px;
+  overflow: auto;
+  height: 95%;
+  width: 100%;
+  min-width: 10%;
+  min-height: 10%;
+  max-width: 100%;
+  max-height: 95%;
+  color: white;
+  background: #444444;
+  outline: 0px solid white;
+  border: 0px;
+  border-radius: 5px;
+}
+
+hr {
+  color: #666666;
+}
+
+.column {
+  height: 100%;
+  width: 49%;
+  height: 720px;
+  float: left;
+  padding: 8px;
+  outline: 1px solid #666666;
+  border-radius: 5px;
+  margin-bottom: 16px;
+}
+
+#col-render {
+  margin-left: 1%;
+}
+
+#action-panel {
+  clear: left;
+  margin-top: 32px;
+  padding-top: 32px;
+  border-radius: 5px;
+  outline: 1px solid #666666;
+  width: 100%;
+  text-align: center;
+}
+
+i {
+  color: black;
+  margin-right: 8px;
+}
+
+button {
+  color: black;
+  font-size: 16px;
+  margin-bottom: 32px;
+  padding: 10px 32px 10px 32px;
+}
+
+#render-bg-color {
+  color: black;
+  font-size: 16px;
+  margin-bottom: 32px;
+  margin-right: 64px;
+  margin-left: 12px;
+  width: 100px;
+  padding: 10px 0px 10px 8px;
+}
