@@ -48,6 +48,10 @@ def fn_generate_pdf():
     theme = config.get("theme", "default")
     pdf_fit = config.get("pdfFit", False)
     bg_color = config.get("backgroundColor", "white")
+    trim_empty_borders = config.get("trimEmptyBorders", True)
+
+    temp_input_uri = temp_input_uri.strip()
+    output_uri = output_uri.strip()
 
     subprocess.run([
         "./node_modules/.bin/mmdc",
@@ -55,10 +59,13 @@ def fn_generate_pdf():
         "--width", str(width),
         "--height", str(height),
         "--pdfFit" if pdf_fit else "",
-        "--input", temp_input_uri.strip(),
-        "--output", output_uri.strip(),
+        "--input", temp_input_uri,
+        "--output", output_uri,
         "--backgroundColor", bg_color,
     ])
+
+    if trim_empty_borders:
+        subprocess.run(["pdfcrop",  output_uri, output_uri])
 
     return flask.make_response(dict(response="OK", status=200))
 
