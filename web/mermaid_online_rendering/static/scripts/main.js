@@ -2,6 +2,21 @@ const FLASK_PORT = 6767;
 const fetch_url_data = "http://127.0.0.1:" + FLASK_PORT + "/generate-pdf";
 
 
+function fn_copyMermaidCodeToClipboard() {
+  const mermaidCode = d3.select("#code-area").text();
+
+  navigator.clipboard.writeText(mermaidCode).then(function() {
+    const copyButton = d3.select("#copy-to-clipboard");
+    copyButton.text("Copied successfully!");
+    window.setTimeout(function() {
+      copyButton.text("Copy code to clipboard");
+    }, 3000);
+  }, function(err) {
+    d3.select("#copy-to-clipboard").text("Ops, something went wrong!");
+  });
+}
+
+
 function fn_changeRenderBackgroundColor() {
   let renderBgColor = this.value || "#FFFFFF";
 
@@ -70,6 +85,9 @@ d3.select("#output-uri")
 
 d3.select("#button-gen-pdf")
   .on("click", fn_genPdf);
+
+d3.select("#copy-to-clipboard")
+  .on("click", fn_copyMermaidCodeToClipboard);
 
 
 fn_changeRenderBackgroundColor();

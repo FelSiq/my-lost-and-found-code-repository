@@ -87,3 +87,8 @@ input {
 #output-uri {
   width: 512px;
 }
+
+#copy-to-clipboard {
+  margin-right: 32px;
+  width: 300px;
+}
