@@ -1,11 +1,38 @@
+import typing as t
 import subprocess
 import pathlib
 import os
 import json
+import threading
+import webbrowser
 
 import flask
 import flask_cors
 import werkzeug.wrappers
+
+
+CONFIG: t.Dict[str, t.Any]
+
+
+try:
+    with open("config.json", "r", encoding="utf-8") as f_config:
+        CONFIG = json.load(f_config)
+
+    print("Loaded CONFIG:")
+    for key, val in CONFIG.items():
+        print(f"{key:<32} : {val}")
+
+except (OSError, FileNotFoundError):
+    CONFIG = {}
+
+
+if CONFIG.get("open_browser_tab_in_startup"):
+    seconds_to_open_tab = float(CONFIG.get("seconds_to_open_browser_tab", 0.75))
+    flask_port = os.environ["FLASK_PORT"]
+    threading.Timer(
+        seconds_to_open_tab,
+        lambda: webbrowser.open_new_tab(f"http://localhost:{flask_port}"),
+    ).start()
 
 
 app = flask.Flask(__name__)
@@ -32,23 +59,12 @@ def fn_generate_pdf():
     with open(temp_input_uri, "w", encoding="utf-8") as f_temp_out:
         f_temp_out.write(diagram_mermaid_code)
 
-    try:
-        with open("config.json", "r", encoding="utf-8") as f_config:
-            config = json.load(f_config)
-
-        print("Loaded config:")
-        for key, val in config.items():
-            print(f"{key:<32} : {val}")
-
-    except (OSError, FileNotFoundError):
-        config = {}
-
-    width = config.get("width", 800)
-    height = config.get("height", 600)
-    theme = config.get("theme", "default")
-    pdf_fit = config.get("pdfFit", False)
-    bg_color = config.get("backgroundColor", "white")
-    trim_empty_borders = config.get("trimEmptyBorders", True)
+    width = CONFIG.get("width", 800)
+    height = CONFIG.get("height", 600)
+    theme = CONFIG.get("theme", "default")
+    pdf_fit = CONFIG.get("pdfFit", False)
+    bg_color = CONFIG.get("backgroundColor", "white")
+    trim_empty_borders = CONFIG.get("trimEmptyBorders", True)
 
     temp_input_uri = temp_input_uri.strip()
     output_uri = output_uri.strip()
